@@ -10,6 +10,7 @@ import ImportarClientes from './pages/ImportarClientes'
 import Produtos from './pages/Produtos'
 import ImportarPrecos from './pages/ImportarPrecos'
 import NovoPedido from './pages/NovoPedido'
+import EditarPedido from './pages/EditarPedido'
 import Pedidos from './pages/Pedidos'
 
 function App() {
@@ -87,6 +88,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <Pedidos />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/pedidos/:id/editar"
+            element={
+              <ProtectedRoute>
+                <EditarPedido />
               </ProtectedRoute>
             }
           />

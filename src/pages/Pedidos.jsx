@@ -5,6 +5,31 @@ import Modal from '../components/Modal'
 import { formatMoney, formatDate } from '../utils/format'
 import { useAuth } from '../context/AuthContext'
 
+const STATUS_LABEL = {
+  pendente: 'Pendente',
+  concluido: 'Concluído',
+  exportado: 'Exportado',
+  cancelado: 'Cancelado',
+}
+
+const STATUS_COR = {
+  pendente: 'bg-yellow-500',
+  concluido: 'bg-blue-500',
+  exportado: 'bg-gray-500',
+  cancelado: 'bg-red-500',
+}
+
+const STATUS_BLOQUEADOS_EDICAO = ['exportado', 'cancelado']
+
+function baixarBlob(blob, nomeArquivo) {
+  const url = window.URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = nomeArquivo
+  a.click()
+  window.URL.revokeObjectURL(url)
+}
+
 export default function Pedidos() {
   const navigate = useNavigate()
   const { isAdmin } = useAuth()
@@ -53,13 +78,14 @@ export default function Pedidos() {
   const exportar = async () => {
     const params = {}
     Object.entries(filtros).forEach(([k, v]) => { if (v) params[k] = v })
-    const res = await api.get('/pedidos/export', { params, responseType: 'blob' })
-    const url = window.URL.createObjectURL(res.data)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = 'pedidos.xlsx'
-    a.click()
-    window.URL.revokeObjectURL(url)
+    const res = await api.post('/pedidos/export', {}, { params, responseType: 'blob' })
+    baixarBlob(res.data, 'pedidos.xlsx')
+    carregar(filtros)
+  }
+
+  const baixarPdf = async (pedido) => {
+    const res = await api.get(`/pedidos/${pedido.id}/pdf`, { responseType: 'blob' })
+    baixarBlob(res.data, `pedido-${pedido.numero}.pdf`)
   }
 
   return (
@@ -102,7 +128,9 @@ export default function Pedidos() {
             className="px-3 py-2 border border-gray-300 rounded-md text-sm"
           >
             <option value="">Todos</option>
-            <option value="aberto">Aberto</option>
+            <option value="pendente">Pendente</option>
+            <option value="concluido">Concluído</option>
+            <option value="exportado">Exportado</option>
             <option value="cancelado">Cancelado</option>
           </select>
         </div>
@@ -142,23 +170,34 @@ export default function Pedidos() {
               </tr>
             </thead>
             <tbody>
-              {pedidos.map((p) => (
-                <tr key={p.id} className="border-b hover:bg-gray-50">
-                  <td className="px-4 py-3">{p.numero}</td>
-                  <td className="px-4 py-3">{formatDate(p.data_pedido)}</td>
-                  <td className="px-4 py-3">{p.cliente_nome}</td>
-                  {isAdmin && <td className="px-4 py-3">{p.vendedor_nome}</td>}
-                  <td className="px-4 py-3">
-                    <span className={`px-2 py-1 rounded text-white text-xs ${p.status === 'aberto' ? 'bg-green-500' : 'bg-red-500'}`}>
-                      {p.status === 'aberto' ? 'Aberto' : 'Cancelado'}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 font-medium">{formatMoney(p.valor_total)}</td>
-                  <td className="px-4 py-3">
-                    <button onClick={() => abrirDetalhe(p)} className="text-blue-600 hover:text-blue-800 text-sm">Ver</button>
-                  </td>
-                </tr>
-              ))}
+              {pedidos.map((p) => {
+                const edicaoBloqueada = STATUS_BLOQUEADOS_EDICAO.includes(p.status)
+                return (
+                  <tr key={p.id} className="border-b hover:bg-gray-50">
+                    <td className="px-4 py-3">{p.numero}</td>
+                    <td className="px-4 py-3">{formatDate(p.data_pedido)}</td>
+                    <td className="px-4 py-3">{p.cliente_nome}</td>
+                    {isAdmin && <td className="px-4 py-3">{p.vendedor_nome}</td>}
+                    <td className="px-4 py-3">
+                      <span className={`px-2 py-1 rounded text-white text-xs ${STATUS_COR[p.status] || 'bg-gray-400'}`}>
+                        {STATUS_LABEL[p.status] || p.status}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 font-medium">{formatMoney(p.valor_total)}</td>
+                    <td className="px-4 py-3 space-x-3 whitespace-nowrap">
+                      <button onClick={() => abrirDetalhe(p)} className="text-blue-600 hover:text-blue-800 text-sm">Ver</button>
+                      {edicaoBloqueada ? (
+                        <span className="text-gray-300 text-sm cursor-not-allowed">Editar</span>
+                      ) : (
+                        <button onClick={() => navigate(`/pedidos/${p.id}/editar`)} className="text-blue-600 hover:text-blue-800 text-sm">
+                          Editar
+                        </button>
+                      )}
+                      <button onClick={() => baixarPdf(p)} className="text-blue-600 hover:text-blue-800 text-sm">PDF</button>
+                    </td>
+                  </tr>
+                )
+              })}
             </tbody>
           </table>
         </div>
@@ -169,7 +208,12 @@ export default function Pedidos() {
           <div>
             <p className="text-sm text-gray-600 mb-1">Cliente: <strong>{detalhe.cliente_nome}</strong></p>
             <p className="text-sm text-gray-600 mb-1">Vendedor: <strong>{detalhe.vendedor_nome}</strong></p>
-            <p className="text-sm text-gray-600 mb-3">Data: <strong>{formatDate(detalhe.data_pedido)}</strong></p>
+            <p className="text-sm text-gray-600 mb-1">Data: <strong>{formatDate(detalhe.data_pedido)}</strong></p>
+            <p className="text-sm text-gray-600 mb-3">
+              Status: <span className={`px-2 py-1 rounded text-white text-xs ${STATUS_COR[detalhe.status] || 'bg-gray-400'}`}>
+                {STATUS_LABEL[detalhe.status] || detalhe.status}
+              </span>
+            </p>
 
             <div className="max-h-64 overflow-y-auto border-t border-b divide-y mb-3">
               {detalhe.itens.map((item) => (
@@ -188,7 +232,7 @@ export default function Pedidos() {
 
             <p className="text-right text-lg font-bold mb-4">Total: {formatMoney(detalhe.valor_total)}</p>
 
-            {detalhe.status === 'aberto' && (
+            {!STATUS_BLOQUEADOS_EDICAO.includes(detalhe.status) && (
               <button onClick={() => cancelar(detalhe.id)} className="w-full bg-red-600 text-white py-2 rounded hover:bg-red-700">
                 Cancelar Pedido
               </button>

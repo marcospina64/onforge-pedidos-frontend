@@ -2,9 +2,13 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import api from '../services/api'
 import { formatMoney } from '../utils/format'
+import { encontrarItemForaDoLimite } from '../utils/pedidoCalc'
 import Modal from '../components/Modal'
+import CarrinhoItens from '../components/CarrinhoItens'
 
 const CLIENTE_VAZIO = { razao_social: '', cnpj: '', cidade: '', estado: '', telefone: '' }
+
+const STATUS_LABEL = { pendente: 'Pendente', concluido: 'Concluído' }
 
 export default function NovoPedido() {
   const navigate = useNavigate()
@@ -15,9 +19,6 @@ export default function NovoPedido() {
   const [clienteSelecionado, setClienteSelecionado] = useState(null)
   const [modalClienteOpen, setModalClienteOpen] = useState(false)
   const [novoCliente, setNovoCliente] = useState(CLIENTE_VAZIO)
-
-  const [buscaProduto, setBuscaProduto] = useState('')
-  const [produtosEncontrados, setProdutosEncontrados] = useState([])
 
   const [carrinho, setCarrinho] = useState([])
   const [enviando, setEnviando] = useState(false)
@@ -50,59 +51,7 @@ export default function NovoPedido() {
     setClientesEncontrados([])
   }
 
-  const buscarProdutos = async (termo) => {
-    setBuscaProduto(termo)
-    if (termo.length < 1) {
-      setProdutosEncontrados([])
-      return
-    }
-    const res = await api.get('/produtos', { params: { busca: termo } })
-    setProdutosEncontrados(res.data)
-  }
-
-  const adicionarAoCarrinho = (produto) => {
-    setCarrinho((atual) => {
-      const existente = atual.find((i) => i.produto_id === produto.id)
-      if (existente) {
-        return atual.map((i) => (i.produto_id === produto.id ? { ...i, qtd: i.qtd + 1 } : i))
-      }
-      return [
-        ...atual,
-        {
-          produto_id: produto.id,
-          codigo: produto.codigo,
-          nome_produto: produto.nome_produto,
-          foto_base64: produto.foto_base64,
-          unidade: produto.unidade,
-          preco_tabela: Number(produto.preco_tabela),
-          qtd: 1,
-          perc_desconto: 0,
-        },
-      ]
-    })
-  }
-
-  const atualizarItem = (produtoId, campo, valor) => {
-    setCarrinho((atual) =>
-      atual.map((i) => (i.produto_id === produtoId ? { ...i, [campo]: valor } : i))
-    )
-  }
-
-  const removerItem = (produtoId) => {
-    setCarrinho((atual) => atual.filter((i) => i.produto_id !== produtoId))
-  }
-
-  const calcularItem = (item) => {
-    const qtd = Number(item.qtd) || 0
-    const percDesconto = Number(item.perc_desconto) || 0
-    const bruto = qtd * item.preco_tabela
-    const desconto = bruto * (percDesconto / 100)
-    return { bruto, desconto, total: bruto - desconto }
-  }
-
-  const totalPedido = carrinho.reduce((soma, item) => soma + calcularItem(item).total, 0)
-
-  const finalizarPedido = async () => {
+  const salvarPedido = async (status) => {
     setErro('')
     setSucesso(null)
 
@@ -114,7 +63,7 @@ export default function NovoPedido() {
       setErro('Adicione ao menos um produto')
       return
     }
-    const itemForaLimite = carrinho.find((i) => Number(i.perc_desconto) > descontoMaximo)
+    const itemForaLimite = encontrarItemForaDoLimite(carrinho, descontoMaximo)
     if (itemForaLimite) {
       setErro(`O desconto de ${itemForaLimite.perc_desconto}% em "${itemForaLimite.nome_produto}" excede o limite de ${descontoMaximo}%`)
       return
@@ -124,6 +73,7 @@ export default function NovoPedido() {
       setEnviando(true)
       const res = await api.post('/pedidos', {
         cliente_id: clienteSelecionado.id,
+        status,
         itens: carrinho.map((i) => ({
           produto_id: i.produto_id,
           qtd: Number(i.qtd),
@@ -146,7 +96,9 @@ export default function NovoPedido() {
       <div className="p-6 max-w-2xl mx-auto text-center">
         <div className="bg-white rounded-lg shadow p-8">
           <div className="text-5xl mb-4">✓</div>
-          <h1 className="text-2xl font-bold mb-2">Pedido nº {sucesso.numero} criado com sucesso!</h1>
+          <h1 className="text-2xl font-bold mb-2">
+            Pedido nº {sucesso.numero} salvo como "{STATUS_LABEL[sucesso.status] || sucesso.status}"!
+          </h1>
           <p className="text-gray-600 mb-6">Valor total: {formatMoney(sucesso.valor_total)}</p>
           <div className="flex gap-3 justify-center">
             <button onClick={() => setSucesso(null)} className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
@@ -172,7 +124,7 @@ export default function NovoPedido() {
 
       {/* Cliente */}
       <div className="bg-white rounded-lg shadow p-6 mb-6">
-        <h2 className="text-lg font-semibold mb-3">1. Cliente</h2>
+        <h2 className="text-lg font-semibold mb-3">Cliente</h2>
         {clienteSelecionado ? (
           <div className="flex justify-between items-center bg-blue-50 border border-blue-200 rounded p-3">
             <div>
@@ -213,101 +165,27 @@ export default function NovoPedido() {
         )}
       </div>
 
-      {/* Produtos */}
-      <div className="bg-white rounded-lg shadow p-6 mb-6">
-        <h2 className="text-lg font-semibold mb-3">2. Produtos</h2>
-        <input
-          type="text" value={buscaProduto} onChange={(e) => buscarProdutos(e.target.value)}
-          placeholder="Buscar produto por código ou nome..."
-          className="w-full px-3 py-2 border border-gray-300 rounded-md mb-3"
-        />
-        {produtosEncontrados.length > 0 && (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 max-h-72 overflow-y-auto">
-            {produtosEncontrados.map((p) => (
-              <div key={p.id} className="border border-gray-200 rounded-md p-2 flex flex-col items-center text-center">
-                {p.foto_base64 ? (
-                  <img src={p.foto_base64} alt={p.nome_produto} className="w-16 h-16 object-contain mb-1" />
-                ) : (
-                  <div className="w-16 h-16 bg-gray-100 mb-1" />
-                )}
-                <p className="text-xs">{p.codigo}</p>
-                <p className="text-xs font-medium leading-tight mb-1">{p.nome_produto}</p>
-                <p className="text-xs font-bold text-blue-600 mb-1">{formatMoney(p.preco_tabela)}</p>
-                <button
-                  onClick={() => adicionarAoCarrinho(p)}
-                  className="bg-blue-600 text-white text-xs px-2 py-1 rounded hover:bg-blue-700 w-full"
-                >
-                  Adicionar
-                </button>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* Carrinho */}
-      <div className="bg-white rounded-lg shadow p-6 mb-6">
-        <h2 className="text-lg font-semibold mb-3">3. Itens do Pedido</h2>
-        {carrinho.length === 0 ? (
-          <p className="text-gray-500 text-sm">Nenhum produto adicionado ainda.</p>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="bg-gray-100">
-                <tr>
-                  <th className="px-2 py-2 text-left">Produto</th>
-                  <th className="px-2 py-2 text-left">Qtd</th>
-                  <th className="px-2 py-2 text-left">Vr. Unit.</th>
-                  <th className="px-2 py-2 text-left">% Desc.</th>
-                  <th className="px-2 py-2 text-left">Vr. Total</th>
-                  <th className="px-2 py-2"></th>
-                </tr>
-              </thead>
-              <tbody>
-                {carrinho.map((item) => {
-                  const { total } = calcularItem(item)
-                  const acimaDoLimite = Number(item.perc_desconto) > descontoMaximo
-                  return (
-                    <tr key={item.produto_id} className="border-b">
-                      <td className="px-2 py-2">{item.codigo} - {item.nome_produto}</td>
-                      <td className="px-2 py-2">
-                        <input
-                          type="number" min="0.001" step="0.001" value={item.qtd}
-                          onChange={(e) => atualizarItem(item.produto_id, 'qtd', e.target.value)}
-                          className="w-20 px-2 py-1 border border-gray-300 rounded"
-                        />
-                      </td>
-                      <td className="px-2 py-2">{formatMoney(item.preco_tabela)}</td>
-                      <td className="px-2 py-2">
-                        <input
-                          type="number" min="0" max="100" step="0.01" value={item.perc_desconto}
-                          onChange={(e) => atualizarItem(item.produto_id, 'perc_desconto', e.target.value)}
-                          className={`w-20 px-2 py-1 border rounded ${acimaDoLimite ? 'border-red-500 bg-red-50' : 'border-gray-300'}`}
-                        />
-                        {acimaDoLimite && <p className="text-xs text-red-600">Máx: {descontoMaximo}%</p>}
-                      </td>
-                      <td className="px-2 py-2 font-medium">{formatMoney(total)}</td>
-                      <td className="px-2 py-2">
-                        <button onClick={() => removerItem(item.produto_id)} className="text-red-600 hover:text-red-800">✕</button>
-                      </td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
-          </div>
-        )}
-
-        <div className="mt-4 flex justify-between items-center border-t pt-4">
-          <p className="text-xl font-bold">Total: {formatMoney(totalPedido)}</p>
-          <button
-            onClick={finalizarPedido} disabled={enviando}
-            className="bg-green-600 text-white px-6 py-3 rounded hover:bg-green-700 disabled:bg-gray-400"
-          >
-            {enviando ? 'Salvando...' : 'Finalizar Pedido'}
-          </button>
-        </div>
-      </div>
+      <CarrinhoItens
+        carrinho={carrinho}
+        setCarrinho={setCarrinho}
+        descontoMaximo={descontoMaximo}
+        acoes={
+          <>
+            <button
+              onClick={() => salvarPedido('pendente')} disabled={enviando}
+              className="bg-gray-600 text-white px-5 py-3 rounded hover:bg-gray-700 disabled:bg-gray-400"
+            >
+              {enviando ? 'Salvando...' : 'Salvar'}
+            </button>
+            <button
+              onClick={() => salvarPedido('concluido')} disabled={enviando}
+              className="bg-green-600 text-white px-6 py-3 rounded hover:bg-green-700 disabled:bg-gray-400"
+            >
+              {enviando ? 'Salvando...' : 'Finalizar Pedido'}
+            </button>
+          </>
+        }
+      />
 
       <Modal isOpen={modalClienteOpen} title="Novo Cliente" onClose={() => setModalClienteOpen(false)}>
         <form onSubmit={criarCliente} className="space-y-3">
