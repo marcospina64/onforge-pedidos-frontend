@@ -54,6 +54,7 @@ export default function ImportarClientes() {
         <h2 className="text-lg font-semibold mb-2">1. Baixe o template</h2>
         <p className="text-sm text-gray-600 mb-4">
           Preencha os dados dos clientes seguindo exatamente os nomes das colunas do modelo (a ordem das colunas não importa).
+          Também é possível enviar diretamente a planilha de contatos exportada do Olist, sem precisar migrar os dados para o template.
         </p>
         <button onClick={baixarTemplate} className="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">
           Baixar Template
