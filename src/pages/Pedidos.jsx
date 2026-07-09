@@ -166,6 +166,7 @@ export default function Pedidos() {
                 {isAdmin && <th className="px-4 py-2 text-left">Vendedor</th>}
                 <th className="px-4 py-2 text-left">Status</th>
                 <th className="px-4 py-2 text-left">Valor Total</th>
+                <th className="px-4 py-2 text-left">Condição Pagamento</th>
                 <th className="px-4 py-2"></th>
               </tr>
             </thead>
@@ -184,6 +185,7 @@ export default function Pedidos() {
                       </span>
                     </td>
                     <td className="px-4 py-3 font-medium">{formatMoney(p.valor_total)}</td>
+                    <td className="px-4 py-3 text-sm">{p.condicao_pagamento || '-'}</td>
                     <td className="px-4 py-3 space-x-3 whitespace-nowrap">
                       <button onClick={() => abrirDetalhe(p)} className="text-blue-600 hover:text-blue-800 text-sm">Ver</button>
                       {edicaoBloqueada ? (
@@ -209,11 +211,20 @@ export default function Pedidos() {
             <p className="text-sm text-gray-600 mb-1">Cliente: <strong>{detalhe.cliente_nome}</strong></p>
             <p className="text-sm text-gray-600 mb-1">Vendedor: <strong>{detalhe.vendedor_nome}</strong></p>
             <p className="text-sm text-gray-600 mb-1">Data: <strong>{formatDate(detalhe.data_pedido)}</strong></p>
-            <p className="text-sm text-gray-600 mb-3">
+            <p className="text-sm text-gray-600 mb-1">
               Status: <span className={`px-2 py-1 rounded text-white text-xs ${STATUS_COR[detalhe.status] || 'bg-gray-400'}`}>
                 {STATUS_LABEL[detalhe.status] || detalhe.status}
               </span>
             </p>
+            {detalhe.desconto_geral > 0 && (
+              <p className="text-sm text-gray-600 mb-1">Desconto Geral: <strong>{detalhe.desconto_geral}%</strong></p>
+            )}
+            {detalhe.condicao_pagamento && (
+              <p className="text-sm text-gray-600 mb-1">Condição Pagamento: <strong>{detalhe.condicao_pagamento}</strong></p>
+            )}
+            {detalhe.observacao_pagamento && (
+              <p className="text-sm text-gray-600 mb-3">Observação: <strong>{detalhe.observacao_pagamento}</strong></p>
+            )}
 
             <div className="max-h-64 overflow-y-auto border-t border-b divide-y mb-3">
               {detalhe.itens.map((item) => (

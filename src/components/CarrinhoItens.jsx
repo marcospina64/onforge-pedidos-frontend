@@ -3,7 +3,7 @@ import api from '../services/api'
 import { formatMoney } from '../utils/format'
 import { calcularItem, calcularTotalPedido } from '../utils/pedidoCalc'
 
-export default function CarrinhoItens({ carrinho, setCarrinho, descontoMaximo, acoes }) {
+export default function CarrinhoItens({ carrinho, setCarrinho, descontoMaximo, descontoGeral = 0, acoes }) {
   const [buscaProduto, setBuscaProduto] = useState('')
   const [produtosEncontrados, setProdutosEncontrados] = useState([])
 
@@ -33,7 +33,7 @@ export default function CarrinhoItens({ carrinho, setCarrinho, descontoMaximo, a
           unidade: produto.unidade,
           preco_tabela: Number(produto.preco_tabela),
           qtd: 1,
-          perc_desconto: 0,
+          perc_desconto: descontoGeral > 0 ? descontoGeral : 0,
         },
       ]
     })
