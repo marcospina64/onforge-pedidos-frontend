@@ -79,7 +79,10 @@ export default function Pedidos() {
     const params = {}
     Object.entries(filtros).forEach(([k, v]) => { if (v) params[k] = v })
     const res = await api.post('/pedidos/export', {}, { params, responseType: 'blob' })
-    baixarBlob(res.data, 'pedidos.xlsx')
+    const disposition = res.headers['content-disposition'] || ''
+    const match = disposition.match(/filename="?([^";]+)"?/)
+    const nomeArquivo = match ? match[1] : 'pedidos.xlsx'
+    baixarBlob(res.data, nomeArquivo)
     carregar(filtros)
   }
 

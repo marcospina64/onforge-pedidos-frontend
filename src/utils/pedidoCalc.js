@@ -17,12 +17,15 @@ export function encontrarItemForaDoLimite(carrinho, descontoMaximo) {
 export function calcularDescontoMedio(carrinho) {
   const totalBruto = carrinho.reduce((soma, item) => {
     const qtd = Number(item.qtd) || 0
-    return soma + (qtd * item.preco_tabela)
+    const precoUnitario = Number(item.preco_tabela ?? item.vr_unitario) || 0
+    return soma + (qtd * precoUnitario)
   }, 0)
 
   const totalDesconto = carrinho.reduce((soma, item) => {
+    if (item.vr_desconto !== undefined) return soma + (Number(item.vr_desconto) || 0)
     const qtd = Number(item.qtd) || 0
-    const bruto = qtd * item.preco_tabela
+    const precoUnitario = Number(item.preco_tabela ?? item.vr_unitario) || 0
+    const bruto = qtd * precoUnitario
     const percDesconto = Number(item.perc_desconto) || 0
     return soma + (bruto * (percDesconto / 100))
   }, 0)

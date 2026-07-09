@@ -112,7 +112,7 @@ export default function NovoPedido() {
           <h1 className="text-2xl font-bold mb-2">
             Pedido nº {sucesso.numero} salvo como "{STATUS_LABEL[sucesso.status] || sucesso.status}"!
           </h1>
-          <p className="text-gray-600 mb-2">Valor total: {formatMoney(sucesso.valor_total)}</p>
+          <p className="text-2xl font-bold text-gray-900 mb-2">Valor total: {formatMoney(sucesso.valor_total)}</p>
           <p className="text-gray-600 mb-6">Desconto Médio: {sucesso.desconto_medio?.toFixed(2) || '0.00'}%</p>
           <div className="flex gap-3 justify-center">
             <button onClick={() => setSucesso(null)} className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
@@ -191,8 +191,9 @@ export default function NovoPedido() {
                 value={descontoGeral}
                 onChange={(e) => setDescontoGeral(Number(e.target.value))}
                 placeholder="0"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                className={`w-full px-3 py-2 border rounded-md ${descontoGeral > descontoMaximo ? 'border-red-500 bg-red-50' : 'border-gray-300'}`}
               />
+              {descontoGeral > descontoMaximo && <p className="text-xs text-red-600 mt-1">Máx: {descontoMaximo}%</p>}
             </div>
             <div>
               <label className="block text-xs font-medium text-gray-700 mb-2">Condição de Pagamento</label>
