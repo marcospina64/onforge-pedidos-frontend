@@ -8,7 +8,7 @@ import { useAuth } from '../context/AuthContext'
 const VAZIO = {
   cnpj: '', razao_social: '', nome_fantasia: '', telefone: '', email: '', inscricao_estadual: '',
   cep: '', endereco: '', numero: '', complemento: '', bairro: '', cidade: '', estado: '',
-  nome_contato: '', cargo_contato: '', telefone_contato: '', email_contato: '',
+  nome_contato: '', cargo_contato: '', telefone_contato: '', email_contato: '', vendedor_id: '',
 }
 
 function baixarBlob(blob, nomeArquivo) {
@@ -30,10 +30,14 @@ export default function Clientes() {
   const [editando, setEditando] = useState(null)
   const [form, setForm] = useState(VAZIO)
   const [erro, setErro] = useState('')
+  const [vendedores, setVendedores] = useState([])
 
   useEffect(() => {
     carregar()
-  }, [])
+    if (isAdmin) {
+      api.get('/usuarios/vendedores').then((res) => setVendedores(res.data))
+    }
+  }, [isAdmin])
 
   const carregar = async (termo = '') => {
     try {
@@ -96,6 +100,7 @@ export default function Clientes() {
     { key: 'cidade', label: 'Cidade' },
     { key: 'estado', label: 'UF' },
     { key: 'telefone', label: 'Telefone' },
+    ...(isAdmin ? [{ key: 'vendedor_nome', label: 'Vendedor' }] : []),
   ]
 
   return (
@@ -162,6 +167,21 @@ export default function Clientes() {
             <Campo label="Cargo do Contato" value={form.cargo_contato} onChange={(v) => setForm({ ...form, cargo_contato: v })} />
             <Campo label="Telefone do Contato" value={form.telefone_contato} onChange={(v) => setForm({ ...form, telefone_contato: v })} />
             <Campo label="Email do Contato" value={form.email_contato} onChange={(v) => setForm({ ...form, email_contato: v })} />
+            {isAdmin && (
+              <div>
+                <label className="block text-xs font-medium text-onforge-black/80 mb-1">Vendedor</label>
+                <select
+                  value={form.vendedor_id || ''}
+                  onChange={(e) => setForm({ ...form, vendedor_id: e.target.value })}
+                  className="w-full px-3 py-2 border border-onforge-gray/50 rounded-md text-sm"
+                >
+                  <option value="">Sem vendedor</option>
+                  {vendedores.map((v) => (
+                    <option key={v.id} value={v.id}>{v.nome}</option>
+                  ))}
+                </select>
+              </div>
+            )}
           </div>
 
           <button type="submit" className="w-full bg-onforge-black text-white py-2 rounded-md hover:bg-black/80 mt-2">
