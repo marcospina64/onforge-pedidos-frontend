@@ -22,6 +22,9 @@ export default function EditarPedido() {
   const [enviando, setEnviando] = useState(false)
   const [erro, setErro] = useState('')
   const [sucesso, setSucesso] = useState(null)
+  const [clienteSelecionado, setClienteSelecionado] = useState(null)
+  const [buscaCliente, setBuscaCliente] = useState('')
+  const [clientesEncontrados, setClientesEncontrados] = useState([])
 
   useEffect(() => {
     api.get('/configuracoes').then((res) => {
@@ -36,6 +39,13 @@ export default function EditarPedido() {
       const res = await api.get(`/pedidos/${id}`)
       const dados = res.data
       setPedido(dados)
+      setClienteSelecionado({
+        id: dados.cliente_id,
+        razao_social: dados.cliente_nome,
+        cnpj: dados.cliente_cnpj,
+        cidade: dados.cliente_cidade,
+        estado: dados.cliente_estado,
+      })
       setDescontoGeral(Number(dados.desconto_geral) || 0)
       setCondicaoPagamento(dados.condicao_pagamento || '')
       setObservacao(dados.observacao_pagamento || '')
@@ -61,10 +71,24 @@ export default function EditarPedido() {
     }
   }
 
+  const buscarClientes = async (termo) => {
+    setBuscaCliente(termo)
+    if (termo.length < 2) {
+      setClientesEncontrados([])
+      return
+    }
+    const res = await api.get('/clientes', { params: { busca: termo } })
+    setClientesEncontrados(res.data)
+  }
+
   const salvarEdicao = async (status) => {
     setErro('')
     setSucesso(null)
 
+    if (!clienteSelecionado) {
+      setErro('Selecione um cliente')
+      return
+    }
     if (carrinho.length === 0) {
       setErro('Adicione ao menos um produto')
       return
@@ -83,6 +107,7 @@ export default function EditarPedido() {
       setEnviando(true)
       const res = await api.put(`/pedidos/${id}`, {
         status,
+        cliente_id: clienteSelecionado.id,
         desconto_geral: descontoGeral || 0,
         condicao_pagamento: condicaoPagamento || null,
         observacao_pagamento: observacao || null,
@@ -151,10 +176,38 @@ export default function EditarPedido() {
 
       <div className="bg-white rounded-lg shadow p-6 mb-6">
         <h2 className="text-lg font-semibold mb-3 font-display">Cliente</h2>
-        <div className="bg-onforge-peach/20 border border-onforge-peach rounded p-3">
-          <p className="font-medium">{pedido?.cliente_nome}</p>
-          <p className="text-sm text-onforge-black/60">Status atual: {STATUS_LABEL[pedido?.status] || pedido?.status}</p>
-        </div>
+        {pedido?.status === 'pendente' && clienteSelecionado === null ? (
+          <div>
+            <input
+              type="text" value={buscaCliente} onChange={(e) => buscarClientes(e.target.value)}
+              placeholder="Digite para buscar cliente..."
+              className="w-full px-3 py-2 border border-onforge-gray/50 rounded-md"
+            />
+            {clientesEncontrados.length > 0 && (
+              <div className="border border-onforge-gray/30 rounded-md divide-y max-h-48 overflow-y-auto mt-2">
+                {clientesEncontrados.map((c) => (
+                  <div
+                    key={c.id} onClick={() => { setClienteSelecionado(c); setClientesEncontrados([]); setBuscaCliente('') }}
+                    className="p-2 hover:bg-onforge-cream/60 cursor-pointer text-sm"
+                  >
+                    <p className="font-medium">{c.razao_social}</p>
+                    <p className="text-onforge-black/50">{c.cnpj} · {c.cidade}/{c.estado}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="flex justify-between items-center bg-onforge-peach/20 border border-onforge-peach rounded p-3">
+            <div>
+              <p className="font-medium">{clienteSelecionado?.razao_social}</p>
+              <p className="text-sm text-onforge-black/60">Status atual: {STATUS_LABEL[pedido?.status] || pedido?.status}</p>
+            </div>
+            {pedido?.status === 'pendente' && (
+              <button onClick={() => setClienteSelecionado(null)} className="text-sm text-red-600 hover:text-red-800">Trocar</button>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Desconto Geral e Condições de Pagamento */}
@@ -190,7 +243,6 @@ export default function EditarPedido() {
               <option value="30/45/60/75/90">30/45/60/75/90</option>
               <option value="30/60">30/60</option>
               <option value="30/60/90">30/60/90</option>
-              <option value="Cartão de Crédito">Cartão de Crédito</option>
               <option value="Pix">Pix</option>
             </select>
           </div>

@@ -213,7 +213,6 @@ export default function NovoPedido() {
                 <option value="30/45/60/75/90">30/45/60/75/90</option>
                 <option value="30/60">30/60</option>
                 <option value="30/60/90">30/60/90</option>
-                <option value="Cartão de Crédito">Cartão de Crédito</option>
                 <option value="Pix">Pix</option>
               </select>
             </div>
