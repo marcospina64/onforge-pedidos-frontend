@@ -49,6 +49,7 @@ export default function EditarPedido() {
         nome_produto: item.nome_produto,
         foto_base64: item.foto_base64,
         unidade: item.unidade,
+        gtin: item.gtin,
         preco_tabela: Number(item.vr_unitario),
         qtd: Number(item.qtd),
         perc_desconto: Number(item.perc_desconto),

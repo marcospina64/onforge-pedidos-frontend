@@ -31,6 +31,7 @@ export default function CarrinhoItens({ carrinho, setCarrinho, descontoMaximo, d
           nome_produto: produto.nome_produto,
           foto_base64: produto.foto_base64,
           unidade: produto.unidade,
+          gtin: produto.gtin,
           preco_tabela: Number(produto.preco_tabela),
           qtd: 1,
           perc_desconto: descontoGeral > 0 ? descontoGeral : 0,
@@ -72,6 +73,7 @@ export default function CarrinhoItens({ carrinho, setCarrinho, descontoMaximo, d
                 <p className="text-xs">{p.codigo}</p>
                 <p className="text-xs font-medium leading-tight mb-1">{p.nome_produto}</p>
                 <p className="text-xs font-bold text-onforge-black mb-1">{formatMoney(p.preco_tabela)}</p>
+                {p.gtin && <p className="text-[10px] text-onforge-black/40 mb-1">{p.gtin}</p>}
                 <button
                   onClick={() => adicionarAoCarrinho(p)}
                   className="bg-onforge-black text-white text-xs px-2 py-1 rounded hover:bg-black/80 w-full"
@@ -107,7 +109,10 @@ export default function CarrinhoItens({ carrinho, setCarrinho, descontoMaximo, d
                   const acimaDoLimite = Number(item.perc_desconto) > descontoMaximo
                   return (
                     <tr key={item.produto_id} className="border-b">
-                      <td className="px-2 py-2">{item.codigo} - {item.nome_produto}</td>
+                      <td className="px-2 py-2">
+                        {item.codigo} - {item.nome_produto}
+                        {item.gtin && <span className="block text-[10px] text-onforge-black/40">GTIN: {item.gtin}</span>}
+                      </td>
                       <td className="px-2 py-2">
                         <input
                           type="number" min="0.001" step="0.001" value={item.qtd}

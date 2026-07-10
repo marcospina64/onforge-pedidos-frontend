@@ -38,6 +38,7 @@ export default function Pedidos() {
   const [vendedores, setVendedores] = useState([])
   const [filtros, setFiltros] = useState({ vendedor_id: '', status: '', data_inicio: '', data_fim: '' })
   const [detalhe, setDetalhe] = useState(null)
+  const [toast, setToast] = useState(null)
 
   useEffect(() => {
     carregar()
@@ -75,20 +76,54 @@ export default function Pedidos() {
     carregar(filtros)
   }
 
+  const mostrarToast = (tipo, texto, duracao = 3000) => {
+    setToast({ tipo, texto })
+    if (tipo !== 'info') {
+      setTimeout(() => setToast((t) => (t && t.texto === texto ? null : t)), duracao)
+    }
+  }
+
   const exportar = async () => {
-    const params = {}
-    Object.entries(filtros).forEach(([k, v]) => { if (v) params[k] = v })
-    const res = await api.post('/pedidos/export', {}, { params, responseType: 'blob' })
-    const disposition = res.headers['content-disposition'] || ''
-    const match = disposition.match(/filename="?([^";]+)"?/)
-    const nomeArquivo = match ? match[1] : 'pedidos.xlsx'
-    baixarBlob(res.data, nomeArquivo)
-    carregar(filtros)
+    mostrarToast('info', 'Exportando pedidos...')
+    try {
+      const params = {}
+      Object.entries(filtros).forEach(([k, v]) => { if (v) params[k] = v })
+      const res = await api.post('/pedidos/export', {}, { params, responseType: 'blob' })
+      const disposition = res.headers['content-disposition'] || ''
+      const match = disposition.match(/filename="?([^";]+)"?/)
+      const nomeArquivo = match ? match[1] : 'pedidos.xlsx'
+      baixarBlob(res.data, nomeArquivo)
+      carregar(filtros)
+      mostrarToast('success', 'Exportação concluída!')
+    } catch (err) {
+      mostrarToast('error', err.response?.data?.error || 'Erro ao exportar pedidos')
+    }
+  }
+
+  const exportarPedido = async (pedido) => {
+    mostrarToast('info', `Exportando pedido nº ${pedido.numero}...`)
+    try {
+      const res = await api.post(`/pedidos/${pedido.id}/export`, {}, { responseType: 'blob' })
+      const disposition = res.headers['content-disposition'] || ''
+      const match = disposition.match(/filename="?([^";]+)"?/)
+      const nomeArquivo = match ? match[1] : `pedido-${pedido.numero}.xlsx`
+      baixarBlob(res.data, nomeArquivo)
+      carregar(filtros)
+      mostrarToast('success', `Pedido nº ${pedido.numero} exportado!`)
+    } catch (err) {
+      mostrarToast('error', err.response?.data?.error || 'Erro ao exportar pedido')
+    }
   }
 
   const baixarPdf = async (pedido) => {
-    const res = await api.get(`/pedidos/${pedido.id}/pdf`, { responseType: 'blob' })
-    baixarBlob(res.data, `pedido-${pedido.numero}.pdf`)
+    mostrarToast('info', `Gerando PDF do pedido nº ${pedido.numero}...`)
+    try {
+      const res = await api.get(`/pedidos/${pedido.id}/pdf`, { responseType: 'blob' })
+      baixarBlob(res.data, `pedido-${pedido.numero}.pdf`)
+      mostrarToast('success', 'PDF gerado com sucesso!')
+    } catch (err) {
+      mostrarToast('error', err.response?.data?.error || 'Erro ao gerar PDF')
+    }
   }
 
   return (
@@ -199,6 +234,13 @@ export default function Pedidos() {
                         </button>
                       )}
                       <button onClick={() => baixarPdf(p)} className="text-onforge-black hover:opacity-70 text-sm">PDF</button>
+                      {isAdmin && (
+                        p.status === 'concluido' ? (
+                          <button onClick={() => exportarPedido(p)} className="text-onforge-black hover:opacity-70 text-sm">Exportar</button>
+                        ) : (
+                          <span className="text-onforge-gray text-sm cursor-not-allowed" title="Somente pedidos Concluídos podem ser exportados">Exportar</span>
+                        )
+                      )}
                     </td>
                   </tr>
                 )
@@ -234,6 +276,7 @@ export default function Pedidos() {
                 <div key={item.id} className="py-2 flex justify-between text-sm">
                   <div>
                     <p className="font-medium">{item.codigo_produto} - {item.nome_produto}</p>
+                    {item.gtin && <p className="text-onforge-black/40 text-xs">GTIN: {item.gtin}</p>}
                     <p className="text-onforge-black/50">
                       {item.qtd} {item.unidade} x {formatMoney(item.vr_unitario)}
                       {Number(item.perc_desconto) > 0 && ` (- ${item.perc_desconto}%)`}
@@ -254,6 +297,19 @@ export default function Pedidos() {
           </div>
         )}
       </Modal>
+
+      {toast && (
+        <div
+          className={`fixed bottom-4 right-4 z-50 px-4 py-3 rounded-lg shadow-lg text-sm text-white flex items-center gap-2 ${
+            toast.tipo === 'error' ? 'bg-red-600' : toast.tipo === 'success' ? 'bg-green-600' : 'bg-onforge-black'
+          }`}
+        >
+          {toast.tipo === 'info' && (
+            <span className="h-4 w-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+          )}
+          {toast.texto}
+        </div>
+      )}
     </div>
   )
 }

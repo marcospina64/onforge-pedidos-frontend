@@ -71,6 +71,7 @@ export default function Produtos() {
               <p className="text-sm font-medium leading-tight mb-1">{p.nome_produto}</p>
               <p className="text-xs text-onforge-black/50">{p.unidade}</p>
               <p className="text-sm font-bold text-onforge-black">{formatMoney(p.preco_tabela)}</p>
+              {p.gtin && <p className="text-[10px] text-onforge-black/40 mt-1">{p.gtin}</p>}
             </div>
           ))}
         </div>
