@@ -5,7 +5,20 @@ export default {
     "./src/**/*.{js,jsx,ts,tsx}",
   ],
   theme: {
-    extend: {},
+    extend: {
+      colors: {
+        onforge: {
+          black: '#0D0D0D',
+          peach: '#F0CAAC',
+          cream: '#EAE3DA',
+          gray: '#AFB0B3',
+        },
+      },
+      fontFamily: {
+        display: ['"Space Grotesk"', 'sans-serif'],
+        sans: ['"Zalando Sans Expanded"', '"Montserrat"', 'sans-serif'],
+      },
+    },
   },
   plugins: [],
 }

@@ -71,13 +71,13 @@ export default function Usuarios() {
 
   return (
     <div className="p-6 max-w-5xl mx-auto">
-      <button onClick={() => navigate('/dashboard')} className="text-blue-600 hover:text-blue-800 mb-4 flex items-center">
+      <button onClick={() => navigate('/dashboard')} className="text-onforge-black hover:opacity-70 mb-4 flex items-center">
         ← Voltar ao Menu
       </button>
 
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">Usuários</h1>
-        <button onClick={abrirNovo} className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+        <h1 className="text-3xl font-bold font-display">Usuários</h1>
+        <button onClick={abrirNovo} className="bg-onforge-black text-white px-4 py-2 rounded hover:bg-black/80">
           + Novo Usuário
         </button>
       </div>
@@ -91,39 +91,39 @@ export default function Usuarios() {
           {erro && <div className="p-3 bg-red-50 border border-red-200 text-red-700 rounded text-sm">{erro}</div>}
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Nome</label>
+            <label className="block text-sm font-medium text-onforge-black/80 mb-1">Nome</label>
             <input
               type="text" required value={form.nome}
               onChange={(e) => setForm({ ...form, nome: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md"
+              className="w-full px-3 py-2 border border-onforge-gray/50 rounded-md"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+            <label className="block text-sm font-medium text-onforge-black/80 mb-1">Email</label>
             <input
               type="email" required disabled={!!editando} value={form.email}
               onChange={(e) => setForm({ ...form, email: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md disabled:bg-gray-100"
+              className="w-full px-3 py-2 border border-onforge-gray/50 rounded-md disabled:bg-onforge-cream"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-onforge-black/80 mb-1">
               {editando ? 'Nova senha (deixe em branco para manter)' : 'Senha'}
             </label>
             <input
               type="password" required={!editando} value={form.senha}
               onChange={(e) => setForm({ ...form, senha: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md"
+              className="w-full px-3 py-2 border border-onforge-gray/50 rounded-md"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Tipo</label>
+            <label className="block text-sm font-medium text-onforge-black/80 mb-1">Tipo</label>
             <select
               value={form.tipo} onChange={(e) => setForm({ ...form, tipo: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md"
+              className="w-full px-3 py-2 border border-onforge-gray/50 rounded-md"
             >
               <option value="vendedor">Vendedor</option>
               <option value="admin">Administrador</option>
@@ -133,11 +133,11 @@ export default function Usuarios() {
           {editando && (
             <label className="flex items-center gap-2">
               <input type="checkbox" checked={form.ativo} onChange={(e) => setForm({ ...form, ativo: e.target.checked })} />
-              <span className="text-sm text-gray-700">Ativo</span>
+              <span className="text-sm text-onforge-black/80">Ativo</span>
             </label>
           )}
 
-          <button type="submit" className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700">
+          <button type="submit" className="w-full bg-onforge-black text-white py-2 rounded-md hover:bg-black/80">
             Salvar
           </button>
         </form>

@@ -42,10 +42,10 @@ export default function Configuracoes() {
 
   return (
     <div className="p-6 max-w-lg mx-auto">
-      <button onClick={() => navigate('/dashboard')} className="text-blue-600 hover:text-blue-800 mb-4 flex items-center">
+      <button onClick={() => navigate('/dashboard')} className="text-onforge-black hover:opacity-70 mb-4 flex items-center">
         ← Voltar ao Menu
       </button>
-      <h1 className="text-3xl font-bold mb-6">Configurações</h1>
+      <h1 className="text-3xl font-bold mb-6 font-display">Configurações</h1>
 
       <div className="bg-white rounded-lg shadow p-6">
         <form onSubmit={salvar} className="space-y-4">
@@ -53,18 +53,18 @@ export default function Configuracoes() {
           {mensagem && <div className="p-3 bg-green-50 border border-green-200 text-green-700 rounded text-sm">{mensagem}</div>}
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-onforge-black/80 mb-1">
               Desconto máximo que o vendedor pode aplicar por item (%)
             </label>
             <input
               type="number" step="0.01" min="0" max="100" required
               value={descontoMaximo}
               onChange={(e) => setDescontoMaximo(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md"
+              className="w-full px-3 py-2 border border-onforge-gray/50 rounded-md"
             />
           </div>
 
-          <button type="submit" disabled={salvando} className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 disabled:bg-blue-400">
+          <button type="submit" disabled={salvando} className="w-full bg-onforge-black text-white py-2 rounded-md hover:bg-black/80 disabled:bg-onforge-gray">
             {salvando ? 'Salvando...' : 'Salvar'}
           </button>
         </form>

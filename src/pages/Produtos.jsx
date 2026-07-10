@@ -32,14 +32,14 @@ export default function Produtos() {
 
   return (
     <div className="p-6 max-w-6xl mx-auto">
-      <button onClick={() => navigate('/dashboard')} className="text-blue-600 hover:text-blue-800 mb-4 flex items-center">
+      <button onClick={() => navigate('/dashboard')} className="text-onforge-black hover:opacity-70 mb-4 flex items-center">
         ← Voltar ao Menu
       </button>
 
       <div className="flex flex-wrap justify-between items-center gap-3 mb-6">
-        <h1 className="text-3xl font-bold">Catálogo de Produtos</h1>
+        <h1 className="text-3xl font-bold font-display">Catálogo de Produtos</h1>
         {isAdmin && (
-          <button onClick={() => navigate('/produtos/importar')} className="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">
+          <button onClick={() => navigate('/produtos/importar')} className="bg-onforge-gray text-white px-4 py-2 rounded hover:bg-black/70">
             Importar Tabela de Preços
           </button>
         )}
@@ -49,15 +49,15 @@ export default function Produtos() {
         <input
           type="text" value={busca} onChange={(e) => setBusca(e.target.value)}
           placeholder="Buscar por código ou nome do produto"
-          className="flex-1 px-3 py-2 border border-gray-300 rounded-md"
+          className="flex-1 px-3 py-2 border border-onforge-gray/50 rounded-md"
         />
-        <button type="submit" className="bg-gray-200 px-4 py-2 rounded hover:bg-gray-300">Buscar</button>
+        <button type="submit" className="bg-onforge-gray/30 px-4 py-2 rounded hover:bg-onforge-gray/40">Buscar</button>
       </form>
 
       {loading ? (
         <div className="text-center py-8">Carregando...</div>
       ) : produtos.length === 0 ? (
-        <div className="text-center py-8 text-gray-500">Nenhum produto encontrado</div>
+        <div className="text-center py-8 text-onforge-black/50">Nenhum produto encontrado</div>
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
           {produtos.map((p) => (
@@ -65,12 +65,12 @@ export default function Produtos() {
               {p.foto_base64 ? (
                 <img src={p.foto_base64} alt={p.nome_produto} className="w-20 h-20 object-contain mb-2" />
               ) : (
-                <div className="w-20 h-20 bg-gray-100 flex items-center justify-center mb-2 text-gray-400 text-xs">Sem foto</div>
+                <div className="w-20 h-20 bg-onforge-cream flex items-center justify-center mb-2 text-onforge-black/40 text-xs">Sem foto</div>
               )}
-              <p className="text-xs text-gray-500">{p.codigo}</p>
+              <p className="text-xs text-onforge-black/50">{p.codigo}</p>
               <p className="text-sm font-medium leading-tight mb-1">{p.nome_produto}</p>
-              <p className="text-xs text-gray-500">{p.unidade}</p>
-              <p className="text-sm font-bold text-blue-600">{formatMoney(p.preco_tabela)}</p>
+              <p className="text-xs text-onforge-black/50">{p.unidade}</p>
+              <p className="text-sm font-bold text-onforge-black">{formatMoney(p.preco_tabela)}</p>
             </div>
           ))}
         </div>

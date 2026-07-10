@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import Logo from '../components/Logo'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -26,11 +27,11 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full bg-white rounded-lg shadow p-8">
-        <h2 className="text-center text-3xl font-bold text-gray-900 mb-6">
-          OnForge Pedidos
-        </h2>
+    <div className="min-h-screen flex items-center justify-center bg-onforge-black py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-md w-full bg-onforge-cream rounded-lg shadow-xl p-8">
+        <div className="flex justify-center mb-8">
+          <Logo variant="black" className="h-10" />
+        </div>
 
         {error && (
           <div className="mb-4 p-4 bg-red-50 border border-red-200 text-red-700 rounded">
@@ -40,7 +41,7 @@ export default function LoginPage() {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-onforge-black/80 mb-1">
               Email
             </label>
             <input
@@ -48,13 +49,13 @@ export default function LoginPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-onforge-gray/50 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-onforge-black"
               placeholder="seu@email.com"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-onforge-black/80 mb-1">
               Senha
             </label>
             <input
@@ -62,7 +63,7 @@ export default function LoginPage() {
               value={senha}
               onChange={(e) => setSenha(e.target.value)}
               required
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-onforge-gray/50 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-onforge-black"
               placeholder="Sua senha"
             />
           </div>
@@ -70,7 +71,7 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-blue-600 text-white py-2 rounded-md font-medium hover:bg-blue-700 disabled:bg-blue-400 transition"
+            className="w-full bg-onforge-black text-onforge-cream py-2 rounded-md font-medium font-display hover:bg-onforge-peach hover:text-onforge-black disabled:opacity-50 transition"
           >
             {loading ? 'Entrando...' : 'Entrar'}
           </button>

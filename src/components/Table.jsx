@@ -4,7 +4,7 @@ export default function Table({ columns, data, onEdit, onDelete, loading }) {
   }
 
   if (data.length === 0) {
-    return <div className="text-center py-8 text-gray-500">Nenhum registro encontrado</div>
+    return <div className="text-center py-8 text-onforge-black/50">Nenhum registro encontrado</div>
   }
 
   const hasCustomActions = columns.some(col => col.key === 'acoes')
@@ -14,20 +14,20 @@ export default function Table({ columns, data, onEdit, onDelete, loading }) {
     <div className="overflow-x-auto">
       <table className="w-full border-collapse">
         <thead>
-          <tr className="bg-gray-100 border-b">
+          <tr className="bg-onforge-cream border-b">
             {columns.map(col => (
-              <th key={col.key} className="px-4 py-2 text-left font-semibold text-gray-700">
+              <th key={col.key} className="px-4 py-2 text-left font-semibold text-onforge-black/80">
                 {col.label}
               </th>
             ))}
             {shouldRenderDefaultActions && (
-              <th className="px-4 py-2 text-left font-semibold text-gray-700">Ações</th>
+              <th className="px-4 py-2 text-left font-semibold text-onforge-black/80">Ações</th>
             )}
           </tr>
         </thead>
         <tbody>
           {data.map(row => (
-            <tr key={row.id} className="border-b hover:bg-gray-50">
+            <tr key={row.id} className="border-b hover:bg-onforge-cream/60">
               {columns.map(col => (
                 <td key={col.key} className="px-4 py-3">
                   {col.render ? col.render(row[col.key], row) : row[col.key]}
@@ -38,7 +38,7 @@ export default function Table({ columns, data, onEdit, onDelete, loading }) {
                   {onEdit && (
                     <button
                       onClick={() => onEdit(row)}
-                      className="bg-blue-500 text-white px-3 py-1 rounded text-sm mr-2 hover:bg-blue-600"
+                      className="bg-onforge-black text-white px-3 py-1 rounded text-sm mr-2 hover:bg-black/80"
                     >
                       Editar
                     </button>

@@ -45,39 +45,39 @@ export default function ImportarClientes() {
 
   return (
     <div className="p-6 max-w-3xl mx-auto">
-      <button onClick={() => navigate('/clientes')} className="text-blue-600 hover:text-blue-800 mb-4 flex items-center">
+      <button onClick={() => navigate('/clientes')} className="text-onforge-black hover:opacity-70 mb-4 flex items-center">
         ← Voltar para Clientes
       </button>
-      <h1 className="text-3xl font-bold mb-6">Importar Clientes</h1>
+      <h1 className="text-3xl font-bold mb-6 font-display">Importar Clientes</h1>
 
       <div className="bg-white rounded-lg shadow p-6 mb-6">
-        <h2 className="text-lg font-semibold mb-2">1. Baixe o template</h2>
-        <p className="text-sm text-gray-600 mb-4">
+        <h2 className="text-lg font-semibold mb-2 font-display">1. Baixe o template</h2>
+        <p className="text-sm text-onforge-black/60 mb-4">
           Preencha os dados dos clientes seguindo exatamente os nomes das colunas do modelo (a ordem das colunas não importa).
           Também é possível enviar diretamente a planilha de contatos exportada do Olist, sem precisar migrar os dados para o template.
         </p>
-        <button onClick={baixarTemplate} className="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">
+        <button onClick={baixarTemplate} className="bg-onforge-gray text-white px-4 py-2 rounded hover:bg-black/70">
           Baixar Template
         </button>
       </div>
 
       <div className="bg-white rounded-lg shadow p-6">
-        <h2 className="text-lg font-semibold mb-4">2. Envie a planilha preenchida</h2>
+        <h2 className="text-lg font-semibold mb-4 font-display">2. Envie a planilha preenchida</h2>
 
-        <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
+        <div className="border-2 border-dashed border-onforge-gray/50 rounded-lg p-8 text-center">
           <input
             type="file" accept=".xlsx,.xls" onChange={(e) => setFile(e.target.files[0])}
             className="hidden" id="file-input"
           />
           <label htmlFor="file-input" className="cursor-pointer block">
             <div className="text-4xl mb-2">📁</div>
-            <p className="text-gray-600 mb-2">Clique para selecionar o arquivo</p>
-            <p className="text-sm text-gray-500">Formato: XLSX</p>
+            <p className="text-onforge-black/60 mb-2">Clique para selecionar o arquivo</p>
+            <p className="text-sm text-onforge-black/50">Formato: XLSX</p>
           </label>
         </div>
 
         {file && (
-          <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded text-sm text-blue-900">
+          <div className="mt-4 p-4 bg-onforge-peach/20 border border-onforge-peach rounded text-sm text-onforge-black">
             Arquivo selecionado: {file.name}
           </div>
         )}
@@ -99,7 +99,7 @@ export default function ImportarClientes() {
 
         <button
           onClick={handleImport} disabled={!file || loading}
-          className="w-full mt-6 bg-blue-600 text-white py-3 rounded hover:bg-blue-700 disabled:bg-gray-400"
+          className="w-full mt-6 bg-onforge-black text-white py-3 rounded hover:bg-black/80 disabled:bg-onforge-gray"
         >
           {loading ? 'Importando...' : 'Importar'}
         </button>

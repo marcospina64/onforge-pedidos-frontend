@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import Logo from '../components/Logo'
 
 export default function Home() {
   const navigate = useNavigate()
@@ -28,13 +29,13 @@ export default function Home() {
   const modules = isAdmin ? modulesAdmin : modulesVendedor
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <nav className="bg-white shadow sticky top-0 z-10">
+    <div className="min-h-screen bg-onforge-cream">
+      <nav className="bg-onforge-black shadow sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-gray-900">OnForge Pedidos</h1>
+          <Logo variant="cream" className="h-7" />
           <button
             onClick={handleLogout}
-            className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition"
+            className="bg-onforge-cream text-onforge-black px-4 py-2 rounded hover:bg-onforge-peach transition"
           >
             Logout
           </button>
@@ -43,8 +44,8 @@ export default function Home() {
 
       <main className="max-w-7xl mx-auto px-4 py-8">
         <div className="mb-8">
-          <h2 className="text-3xl font-bold text-gray-900 mb-2">Bem-vindo, {user?.nome}!</h2>
-          <p className="text-gray-600">{user?.email} · {isAdmin ? 'Administrador' : 'Vendedor'}</p>
+          <h2 className="text-3xl font-bold font-display text-onforge-black mb-2">Bem-vindo, {user?.nome}!</h2>
+          <p className="text-onforge-black/60">{user?.email} · {isAdmin ? 'Administrador' : 'Vendedor'}</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -52,11 +53,11 @@ export default function Home() {
             <div
               key={module.path}
               onClick={() => navigate(module.path)}
-              className="bg-white rounded-lg shadow p-6 hover:shadow-lg cursor-pointer transition"
+              className="bg-white rounded-lg shadow p-6 hover:shadow-lg hover:-translate-y-0.5 cursor-pointer transition"
             >
               <div className="text-4xl mb-3">{module.icon}</div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">{module.title}</h3>
-              <p className="text-gray-600">{module.description}</p>
+              <h3 className="text-lg font-semibold font-display text-onforge-black mb-2">{module.title}</h3>
+              <p className="text-onforge-black/60">{module.description}</p>
             </div>
           ))}
         </div>

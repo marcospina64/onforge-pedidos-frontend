@@ -100,24 +100,24 @@ export default function Clientes() {
 
   return (
     <div className="p-6 max-w-6xl mx-auto">
-      <button onClick={() => navigate('/dashboard')} className="text-blue-600 hover:text-blue-800 mb-4 flex items-center">
+      <button onClick={() => navigate('/dashboard')} className="text-onforge-black hover:opacity-70 mb-4 flex items-center">
         ← Voltar ao Menu
       </button>
 
       <div className="flex flex-wrap justify-between items-center gap-3 mb-6">
-        <h1 className="text-3xl font-bold">Clientes</h1>
+        <h1 className="text-3xl font-bold font-display">Clientes</h1>
         <div className="flex flex-wrap gap-2">
           {isAdmin && (
             <>
-              <button onClick={() => navigate('/clientes/importar')} className="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">
+              <button onClick={() => navigate('/clientes/importar')} className="bg-onforge-gray text-white px-4 py-2 rounded hover:bg-black/70">
                 Importar
               </button>
-              <button onClick={exportar} className="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">
+              <button onClick={exportar} className="bg-onforge-gray text-white px-4 py-2 rounded hover:bg-black/70">
                 Exportar
               </button>
             </>
           )}
-          <button onClick={abrirNovo} className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+          <button onClick={abrirNovo} className="bg-onforge-black text-white px-4 py-2 rounded hover:bg-black/80">
             + Novo Cliente
           </button>
         </div>
@@ -127,9 +127,9 @@ export default function Clientes() {
         <input
           type="text" value={busca} onChange={(e) => setBusca(e.target.value)}
           placeholder="Buscar por razão social, fantasia ou CNPJ"
-          className="flex-1 px-3 py-2 border border-gray-300 rounded-md"
+          className="flex-1 px-3 py-2 border border-onforge-gray/50 rounded-md"
         />
-        <button type="submit" className="bg-gray-200 px-4 py-2 rounded hover:bg-gray-300">Buscar</button>
+        <button type="submit" className="bg-onforge-gray/30 px-4 py-2 rounded hover:bg-onforge-gray/40">Buscar</button>
       </form>
 
       <div className="bg-white rounded-lg shadow p-4">
@@ -164,7 +164,7 @@ export default function Clientes() {
             <Campo label="Email do Contato" value={form.email_contato} onChange={(v) => setForm({ ...form, email_contato: v })} />
           </div>
 
-          <button type="submit" className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 mt-2">
+          <button type="submit" className="w-full bg-onforge-black text-white py-2 rounded-md hover:bg-black/80 mt-2">
             Salvar
           </button>
         </form>
@@ -176,11 +176,11 @@ export default function Clientes() {
 function Campo({ label, value, onChange, required, full }) {
   return (
     <div className={full ? 'col-span-2' : ''}>
-      <label className="block text-xs font-medium text-gray-700 mb-1">{label}</label>
+      <label className="block text-xs font-medium text-onforge-black/80 mb-1">{label}</label>
       <input
         type="text" required={required} value={value || ''}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+        className="w-full px-3 py-2 border border-onforge-gray/50 rounded-md text-sm"
       />
     </div>
   )
