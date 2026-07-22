@@ -119,7 +119,10 @@ export default function Pedidos() {
     mostrarToast('info', `Gerando PDF do pedido nº ${pedido.numero}...`)
     try {
       const res = await api.get(`/pedidos/${pedido.id}/pdf`, { responseType: 'blob' })
-      baixarBlob(res.data, `pedido-${pedido.numero}.pdf`)
+      const disposition = res.headers['content-disposition'] || ''
+      const match = disposition.match(/filename="?([^";]+)"?/)
+      const nomeArquivo = match ? match[1] : `pedido-${pedido.numero}.pdf`
+      baixarBlob(res.data, nomeArquivo)
       mostrarToast('success', 'PDF gerado com sucesso!')
     } catch (err) {
       mostrarToast('error', err.response?.data?.error || 'Erro ao gerar PDF')

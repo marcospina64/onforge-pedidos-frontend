@@ -4,7 +4,10 @@ import api from '../services/api'
 import Table from '../components/Table'
 import Modal from '../components/Modal'
 
-const VAZIO = { nome: '', email: '', senha: '', tipo: 'vendedor', ativo: true }
+const VAZIO = {
+  nome: '', email: '', senha: '', tipo: 'vendedor', ativo: true,
+  celular: '', cidade: '', uf: '', observacoes: '',
+}
 
 export default function Usuarios() {
   const navigate = useNavigate()
@@ -38,7 +41,11 @@ export default function Usuarios() {
 
   const abrirEdicao = (usuario) => {
     setEditando(usuario)
-    setForm({ nome: usuario.nome, email: usuario.email, senha: '', tipo: usuario.tipo, ativo: usuario.ativo })
+    setForm({
+      nome: usuario.nome, email: usuario.email, senha: '', tipo: usuario.tipo, ativo: usuario.ativo,
+      celular: usuario.celular || '', cidade: usuario.cidade || '', uf: usuario.uf || '',
+      observacoes: usuario.observacoes || '',
+    })
     setErro('')
     setModalOpen(true)
   }
@@ -50,6 +57,7 @@ export default function Usuarios() {
       if (editando) {
         await api.put(`/usuarios/${editando.id}`, {
           nome: form.nome, tipo: form.tipo, ativo: form.ativo,
+          celular: form.celular, cidade: form.cidade, uf: form.uf, observacoes: form.observacoes,
           ...(form.senha ? { senha: form.senha } : {}),
         })
       } else {
@@ -65,6 +73,9 @@ export default function Usuarios() {
   const columns = [
     { key: 'nome', label: 'Nome' },
     { key: 'email', label: 'Email' },
+    { key: 'celular', label: 'Celular' },
+    { key: 'cidade', label: 'Cidade' },
+    { key: 'uf', label: 'UF' },
     { key: 'tipo', label: 'Tipo', render: (v) => (v === 'admin' ? 'Administrador' : 'Vendedor') },
     { key: 'ativo', label: 'Ativo', render: (v) => (v ? 'Sim' : 'Não') },
   ]
@@ -128,6 +139,43 @@ export default function Usuarios() {
               <option value="vendedor">Vendedor</option>
               <option value="admin">Administrador</option>
             </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-onforge-black/80 mb-1">Celular</label>
+            <input
+              type="text" value={form.celular}
+              onChange={(e) => setForm({ ...form, celular: e.target.value })}
+              className="w-full px-3 py-2 border border-onforge-gray/50 rounded-md"
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-sm font-medium text-onforge-black/80 mb-1">Cidade</label>
+              <input
+                type="text" value={form.cidade}
+                onChange={(e) => setForm({ ...form, cidade: e.target.value })}
+                className="w-full px-3 py-2 border border-onforge-gray/50 rounded-md"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-onforge-black/80 mb-1">UF</label>
+              <input
+                type="text" maxLength={2} value={form.uf}
+                onChange={(e) => setForm({ ...form, uf: e.target.value.toUpperCase() })}
+                className="w-full px-3 py-2 border border-onforge-gray/50 rounded-md"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-onforge-black/80 mb-1">Observações</label>
+            <textarea
+              rows={3} value={form.observacoes}
+              onChange={(e) => setForm({ ...form, observacoes: e.target.value })}
+              className="w-full px-3 py-2 border border-onforge-gray/50 rounded-md"
+            />
           </div>
 
           {editando && (
