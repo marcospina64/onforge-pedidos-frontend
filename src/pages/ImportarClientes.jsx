@@ -88,7 +88,7 @@ export default function ImportarClientes() {
 
         {resultado && (
           <div className="mt-4 p-4 bg-green-50 border border-green-200 text-green-700 rounded">
-            <p>✓ {resultado.importados} cliente(s) importado(s) com sucesso!</p>
+            <p>✓ {resultado.importados} cliente(s) novo(s) importado(s) e {resultado.atualizados} atualizado(s) com sucesso!</p>
             {resultado.erros?.length > 0 && (
               <ul className="mt-2 text-sm text-red-700 list-disc list-inside">
                 {resultado.erros.map((e, i) => <li key={i}>{e}</li>)}
