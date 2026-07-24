@@ -82,6 +82,12 @@ export default function ImportarPrecos() {
           </div>
         )}
 
+        {resultado?.avisoDrive && (
+          <div className="mt-4 p-4 bg-orange-50 border border-orange-200 text-orange-800 rounded">
+            <p>⚠ {resultado.avisoDrive}</p>
+          </div>
+        )}
+
         {resultado?.imagensNaoEncontradas?.length > 0 && (
           <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 text-yellow-800 rounded">
             <p>
