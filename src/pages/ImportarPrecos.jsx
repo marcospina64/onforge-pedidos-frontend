@@ -42,9 +42,11 @@ export default function ImportarPrecos() {
 
       <div className="bg-white rounded-lg shadow p-6">
         <p className="text-sm text-onforge-black/60 mb-4">
-          Envie a planilha Excel da tabela de preços (ex.: exportada do Mercos). O sistema localiza automaticamente
-          as colunas <strong>Código</strong>, <strong>Foto</strong>, <strong>Produto</strong>, <strong>Unidade</strong> e{' '}
-          <strong>Preço Tabela</strong>, e atualiza os produtos existentes (por código) ou cadastra os novos.
+          Envie a planilha exportada do Olist (.xls) ou do Mercos (.xlsx). O sistema localiza automaticamente
+          as colunas de <strong>Código/SKU</strong>, <strong>Produto/Descrição</strong>, <strong>Unidade</strong> e{' '}
+          <strong>Preço</strong>, e atualiza os produtos existentes (por código) ou cadastra os novos. Fotos já
+          cadastradas são mantidas; para produtos sem foto, o sistema busca automaticamente no Google Drive
+          pelo código do SKU.
         </p>
 
         <div className="border-2 border-dashed border-onforge-gray/50 rounded-lg p-8 text-center">
@@ -77,6 +79,18 @@ export default function ImportarPrecos() {
                 {resultado.erros.map((e, i) => <li key={i}>{e}</li>)}
               </ul>
             )}
+          </div>
+        )}
+
+        {resultado?.imagensNaoEncontradas?.length > 0 && (
+          <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 text-yellow-800 rounded">
+            <p>
+              {resultado.imagensNaoEncontradas.length} produto(s) importado(s) sem imagem
+              (não encontrada no Google Drive):
+            </p>
+            <ul className="mt-2 text-sm list-disc list-inside">
+              {resultado.imagensNaoEncontradas.map((e, i) => <li key={i}>{e}</li>)}
+            </ul>
           </div>
         )}
 
