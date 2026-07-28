@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import api from '../services/api'
 import { formatMoney } from '../utils/format'
@@ -16,6 +16,7 @@ export default function NovoPedido() {
 
   const [buscaCliente, setBuscaCliente] = useState('')
   const [clientesEncontrados, setClientesEncontrados] = useState([])
+  const ultimaBuscaClienteId = useRef(0)
   const [clienteSelecionado, setClienteSelecionado] = useState(null)
   const [modalClienteOpen, setModalClienteOpen] = useState(false)
   const [novoCliente, setNovoCliente] = useState(CLIENTE_VAZIO)
@@ -40,7 +41,10 @@ export default function NovoPedido() {
       setClientesEncontrados([])
       return
     }
+    const buscaId = ++ultimaBuscaClienteId.current
     const res = await api.get('/clientes', { params: { busca: termo } })
+    // Ignora respostas de buscas anteriores que chegaram fora de ordem.
+    if (buscaId !== ultimaBuscaClienteId.current) return
     setClientesEncontrados(res.data)
   }
 

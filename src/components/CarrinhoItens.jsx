@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import api from '../services/api'
 import { formatMoney } from '../utils/format'
 import { calcularItem, calcularTotalPedido } from '../utils/pedidoCalc'
@@ -6,6 +6,7 @@ import { calcularItem, calcularTotalPedido } from '../utils/pedidoCalc'
 export default function CarrinhoItens({ carrinho, setCarrinho, descontoMaximo, descontoGeral = 0, acoes }) {
   const [buscaProduto, setBuscaProduto] = useState('')
   const [produtosEncontrados, setProdutosEncontrados] = useState([])
+  const ultimaBuscaId = useRef(0)
 
   const buscarProdutos = async (termo) => {
     setBuscaProduto(termo)
@@ -13,7 +14,11 @@ export default function CarrinhoItens({ carrinho, setCarrinho, descontoMaximo, d
       setProdutosEncontrados([])
       return
     }
+    const buscaId = ++ultimaBuscaId.current
     const res = await api.get('/produtos', { params: { busca: termo } })
+    // Ignora respostas de buscas anteriores que chegaram fora de ordem (evita
+    // que uma resposta antiga e mais abrangente sobrescreva a busca mais recente).
+    if (buscaId !== ultimaBuscaId.current) return
     setProdutosEncontrados(res.data)
   }
 
