@@ -12,6 +12,11 @@ import ImportarPrecos from './pages/ImportarPrecos'
 import NovoPedido from './pages/NovoPedido'
 import EditarPedido from './pages/EditarPedido'
 import Pedidos from './pages/Pedidos'
+import Comissoes from './pages/Comissoes'
+import ComissoesImportar from './pages/ComissoesImportar'
+import ComissoesPendencias from './pages/ComissoesPendencias'
+import ComissoesClientesSemVendedor from './pages/ComissoesClientesSemVendedor'
+import ComissoesPercentuais from './pages/ComissoesPercentuais'
 
 function App() {
   return (
@@ -96,6 +101,46 @@ function App() {
             element={
               <ProtectedRoute>
                 <EditarPedido />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/comissoes"
+            element={
+              <ProtectedRoute>
+                <Comissoes />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/comissoes/importar"
+            element={
+              <ProtectedRoute adminOnly>
+                <ComissoesImportar />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/comissoes/pendencias"
+            element={
+              <ProtectedRoute adminOnly>
+                <ComissoesPendencias />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/comissoes/clientes-sem-vendedor"
+            element={
+              <ProtectedRoute adminOnly>
+                <ComissoesClientesSemVendedor />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/comissoes/percentuais"
+            element={
+              <ProtectedRoute adminOnly>
+                <ComissoesPercentuais />
               </ProtectedRoute>
             }
           />

@@ -16,6 +16,7 @@ export default function Home() {
     { title: 'Meus Pedidos', description: 'Ver e gerenciar seus pedidos', path: '/pedidos', icon: '📋' },
     { title: 'Clientes', description: 'Consultar e cadastrar clientes', path: '/clientes', icon: '🏢' },
     { title: 'Catálogo de Produtos', description: 'Ver tabela de preços', path: '/produtos', icon: '📦' },
+    { title: 'Minhas Comissões', description: 'Ver suas vendas e comissões', path: '/comissoes', icon: '💰' },
   ]
 
   const modulesAdmin = [
