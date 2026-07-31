@@ -56,7 +56,7 @@ export default function Usuarios() {
     try {
       if (editando) {
         await api.put(`/usuarios/${editando.id}`, {
-          nome: form.nome, tipo: form.tipo, ativo: form.ativo,
+          nome: form.nome, email: form.email, tipo: form.tipo, ativo: form.ativo,
           celular: form.celular, cidade: form.cidade, uf: form.uf, observacoes: form.observacoes,
           ...(form.senha ? { senha: form.senha } : {}),
         })
@@ -113,9 +113,9 @@ export default function Usuarios() {
           <div>
             <label className="block text-sm font-medium text-onforge-black/80 mb-1">Email</label>
             <input
-              type="email" required disabled={!!editando} value={form.email}
+              type="email" required value={form.email}
               onChange={(e) => setForm({ ...form, email: e.target.value })}
-              className="w-full px-3 py-2 border border-onforge-gray/50 rounded-md disabled:bg-onforge-cream"
+              className="w-full px-3 py-2 border border-onforge-gray/50 rounded-md"
             />
           </div>
 
