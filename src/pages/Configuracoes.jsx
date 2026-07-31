@@ -5,6 +5,8 @@ import api from '../services/api'
 export default function Configuracoes() {
   const navigate = useNavigate()
   const [descontoMaximo, setDescontoMaximo] = useState('')
+  const [diaPagamento, setDiaPagamento] = useState('')
+  const [diasUteisCorte, setDiasUteisCorte] = useState('')
   const [loading, setLoading] = useState(true)
   const [salvando, setSalvando] = useState(false)
   const [mensagem, setMensagem] = useState('')
@@ -18,6 +20,8 @@ export default function Configuracoes() {
     try {
       const res = await api.get('/configuracoes')
       setDescontoMaximo(res.data.desconto_maximo_percentual ?? '0')
+      setDiaPagamento(res.data.comissao_dia_pagamento ?? '10')
+      setDiasUteisCorte(res.data.comissao_dias_uteis_corte ?? '2')
     } finally {
       setLoading(false)
     }
@@ -29,7 +33,11 @@ export default function Configuracoes() {
     setMensagem('')
     setSalvando(true)
     try {
-      await api.patch('/configuracoes', { desconto_maximo_percentual: descontoMaximo })
+      await api.patch('/configuracoes', {
+        desconto_maximo_percentual: descontoMaximo,
+        comissao_dia_pagamento: diaPagamento,
+        comissao_dias_uteis_corte: diasUteisCorte,
+      })
       setMensagem('Configuração salva com sucesso!')
     } catch (err) {
       setErro(err.response?.data?.error || 'Erro ao salvar')
@@ -62,6 +70,35 @@ export default function Configuracoes() {
               onChange={(e) => setDescontoMaximo(e.target.value)}
               className="w-full px-3 py-2 border border-onforge-gray/50 rounded-md"
             />
+          </div>
+
+          <hr className="border-onforge-gray/20" />
+
+          <div>
+            <label className="block text-sm font-medium text-onforge-black/80 mb-1">
+              Dia de pagamento da comissão (dia fixo do mês)
+            </label>
+            <input
+              type="number" step="1" min="1" max="28" required
+              value={diaPagamento}
+              onChange={(e) => setDiaPagamento(e.target.value)}
+              className="w-full px-3 py-2 border border-onforge-gray/50 rounded-md"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-onforge-black/80 mb-1">
+              Dias úteis de corte antes do pagamento
+            </label>
+            <input
+              type="number" step="1" min="0" max="15" required
+              value={diasUteisCorte}
+              onChange={(e) => setDiasUteisCorte(e.target.value)}
+              className="w-full px-3 py-2 border border-onforge-gray/50 rounded-md"
+            />
+            <p className="text-xs text-onforge-black/50 mt-1">
+              Parcela confirmada até esse número de dias úteis antes do pagamento (contando feriados nacionais) entra no ciclo do mês corrente; depois disso, cai para o mês seguinte.
+            </p>
           </div>
 
           <button type="submit" disabled={salvando} className="w-full bg-onforge-black text-white py-2 rounded-md hover:bg-black/80 disabled:bg-onforge-gray">

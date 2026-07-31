@@ -26,6 +26,96 @@ const FORMA_PAGAMENTO_LABEL = { pix: 'Pix', cash: 'Cash', outra: 'Outra' }
 
 const PAGAMENTO_VAZIO = { data_pagamento_comissao: '', valor_pago: '', forma_pagamento_comissao: 'pix', forma_pagamento_outra_obs: '' }
 
+const hojeISO = () => new Date().toISOString().slice(0, 10)
+
+// Data prevista 'YYYY-MM-DD' -> "Agosto/2026"
+function formatarMesAno(dataISO) {
+  const [ano, mes] = dataISO.split('-').map(Number)
+  const label = new Date(Date.UTC(ano, mes - 1, 1)).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric', timeZone: 'UTC' })
+  return label.charAt(0).toUpperCase() + label.slice(1)
+}
+
+function calcularProximoCiclo(linhas) {
+  const hoje = hojeISO()
+  const datas = linhas.map((l) => l.dt_prevista_pagamento_comissao).filter((d) => d && d >= hoje)
+  if (datas.length === 0) return null
+  return datas.reduce((min, d) => (d < min ? d : min), datas[0])
+}
+
+function agruparPorMes(linhas) {
+  const grupos = {}
+  const semPrevisao = []
+  linhas.forEach((l) => {
+    if (!l.dt_prevista_pagamento_comissao) { semPrevisao.push(l); return }
+    const chave = l.dt_prevista_pagamento_comissao.slice(0, 7)
+    if (!grupos[chave]) grupos[chave] = []
+    grupos[chave].push(l)
+  })
+  const ordenado = Object.keys(grupos).sort().map((chave) => ({ chave, label: formatarMesAno(`${chave}-01`), linhas: grupos[chave] }))
+  if (semPrevisao.length > 0) ordenado.push({ chave: 'sem-previsao', label: 'Sem previsão', linhas: semPrevisao })
+  return ordenado
+}
+
+function TabelaComissoes({ linhas, isAdmin, abrirPagamento }) {
+  return (
+    <div className="bg-white rounded-lg shadow overflow-x-auto">
+      <table className="w-full text-sm">
+        <thead className="bg-onforge-cream">
+          <tr>
+            <th className="px-4 py-2 text-left">Cliente</th>
+            {isAdmin && <th className="px-4 py-2 text-left">Vendedor</th>}
+            <th className="px-4 py-2 text-left">Situação</th>
+            <th className="px-4 py-2 text-left">Venc. Boleto</th>
+            <th className="px-4 py-2 text-left">Recebido</th>
+            <th className="px-4 py-2 text-left">Comissão</th>
+            <th className="px-4 py-2 text-left">Status Comissão</th>
+            <th className="px-4 py-2 text-left">Prev. Comissão</th>
+            {isAdmin && <th className="px-4 py-2"></th>}
+          </tr>
+        </thead>
+        <tbody>
+          {linhas.map((l) => (
+            <tr key={l.id} className="border-b hover:bg-onforge-cream/60">
+              <td className="px-4 py-3">{l.cliente_nome || l.cliente_nome_olist}</td>
+              {isAdmin && <td className="px-4 py-3">{l.vendedor_nome || '-'}</td>}
+              <td className="px-4 py-3">
+                <span className={`px-2 py-1 rounded text-white text-xs ${SITUACAO_COR[l.situacao] || 'bg-onforge-gray'}`}>
+                  {l.situacao}
+                </span>
+              </td>
+              <td className="px-4 py-3">{formatDate(l.data_vencimento)}</td>
+              <td className="px-4 py-3">{formatMoney(l.recebido)}</td>
+              <td className="px-4 py-3 font-medium">{l.valor_comissao ? formatMoney(l.valor_comissao) : '-'}</td>
+              <td className="px-4 py-3">
+                {l.status_pagamento_comissao ? (
+                  <span className={`px-2 py-1 rounded text-white text-xs ${STATUS_PAGAMENTO_COR[l.status_pagamento_comissao]}`}>
+                    {STATUS_PAGAMENTO_LABEL[l.status_pagamento_comissao]}
+                  </span>
+                ) : '-'}
+              </td>
+              <td className="px-4 py-3">
+                {l.dt_prevista_pagamento_comissao ? formatDate(l.dt_prevista_pagamento_comissao) : '-'}
+                {l.situacao !== 'Paga' && l.dt_prevista_pagamento_comissao && (
+                  <span className="text-xs text-onforge-black/40 block">estimativa</span>
+                )}
+              </td>
+              {isAdmin && (
+                <td className="px-4 py-3 whitespace-nowrap">
+                  {l.comissao_id && (
+                    <button onClick={() => abrirPagamento(l)} className="text-onforge-black hover:opacity-70 text-sm">
+                      {l.status_pagamento_comissao === 'paga' ? 'Ver/Editar Pagamento' : 'Registrar Pagamento'}
+                    </button>
+                  )}
+                </td>
+              )}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )
+}
+
 export default function Comissoes() {
   const navigate = useNavigate()
   const { isAdmin } = useAuth()
@@ -34,6 +124,7 @@ export default function Comissoes() {
   const [loading, setLoading] = useState(true)
   const [vendedores, setVendedores] = useState([])
   const [vendedorFiltro, setVendedorFiltro] = useState('')
+  const [cicloFiltro, setCicloFiltro] = useState('todos')
   const [pendenciasCount, setPendenciasCount] = useState(0)
   const [semVendedorCount, setSemVendedorCount] = useState(0)
   const [pagamentoModal, setPagamentoModal] = useState(null)
@@ -129,21 +220,38 @@ export default function Comissoes() {
         )}
       </div>
 
-      {isAdmin && (
-        <form onSubmit={aplicarFiltro} className="bg-white rounded-lg shadow p-4 mb-6 flex flex-wrap gap-3 items-end">
-          <div>
-            <label className="block text-xs font-medium text-onforge-black/80 mb-1">Vendedor</label>
-            <select
-              value={vendedorFiltro} onChange={(e) => setVendedorFiltro(e.target.value)}
-              className="px-3 py-2 border border-onforge-gray/50 rounded-md text-sm"
-            >
-              <option value="">Todos</option>
-              {vendedores.map((v) => <option key={v.id} value={v.id}>{v.nome}</option>)}
-            </select>
-          </div>
-          <button type="submit" className="bg-onforge-gray/30 px-4 py-2 rounded hover:bg-onforge-gray/40 text-sm">Filtrar</button>
-        </form>
-      )}
+      <div className="bg-white rounded-lg shadow p-4 mb-6 flex flex-wrap gap-3 items-end justify-between">
+        {isAdmin ? (
+          <form onSubmit={aplicarFiltro} className="flex flex-wrap gap-3 items-end">
+            <div>
+              <label className="block text-xs font-medium text-onforge-black/80 mb-1">Vendedor</label>
+              <select
+                value={vendedorFiltro} onChange={(e) => setVendedorFiltro(e.target.value)}
+                className="px-3 py-2 border border-onforge-gray/50 rounded-md text-sm"
+              >
+                <option value="">Todos</option>
+                {vendedores.map((v) => <option key={v.id} value={v.id}>{v.nome}</option>)}
+              </select>
+            </div>
+            <button type="submit" className="bg-onforge-gray/30 px-4 py-2 rounded hover:bg-onforge-gray/40 text-sm">Filtrar</button>
+          </form>
+        ) : <div />}
+
+        <div className="flex gap-1 bg-onforge-cream rounded-md p-1">
+          <button
+            onClick={() => setCicloFiltro('proximo')}
+            className={`px-3 py-1.5 rounded text-sm ${cicloFiltro === 'proximo' ? 'bg-onforge-black text-white' : 'text-onforge-black/70'}`}
+          >
+            Próximo Ciclo
+          </button>
+          <button
+            onClick={() => setCicloFiltro('todos')}
+            className={`px-3 py-1.5 rounded text-sm ${cicloFiltro === 'todos' ? 'bg-onforge-black text-white' : 'text-onforge-black/70'}`}
+          >
+            Todos os Ciclos
+          </button>
+        </div>
+      </div>
 
       {indicadores && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
@@ -172,53 +280,26 @@ export default function Comissoes() {
         <div className="text-center py-8">Carregando...</div>
       ) : linhas.length === 0 ? (
         <div className="text-center py-8 text-onforge-black/50">Nenhum registro de comissão encontrado</div>
+      ) : cicloFiltro === 'proximo' ? (
+        (() => {
+          const proximoCiclo = calcularProximoCiclo(linhas)
+          const linhasCiclo = proximoCiclo ? linhas.filter((l) => l.dt_prevista_pagamento_comissao === proximoCiclo) : []
+          return linhasCiclo.length === 0 ? (
+            <div className="text-center py-8 text-onforge-black/50">Nenhum ciclo futuro com comissão pendente</div>
+          ) : (
+            <div>
+              <p className="text-sm text-onforge-black/60 mb-2">Próximo ciclo de pagamento: <strong>{formatDate(proximoCiclo)}</strong></p>
+              <TabelaComissoes linhas={linhasCiclo} isAdmin={isAdmin} abrirPagamento={abrirPagamento} />
+            </div>
+          )
+        })()
       ) : (
-        <div className="bg-white rounded-lg shadow overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead className="bg-onforge-cream">
-              <tr>
-                <th className="px-4 py-2 text-left">Cliente</th>
-                {isAdmin && <th className="px-4 py-2 text-left">Vendedor</th>}
-                <th className="px-4 py-2 text-left">Situação</th>
-                <th className="px-4 py-2 text-left">Recebido</th>
-                <th className="px-4 py-2 text-left">Comissão</th>
-                <th className="px-4 py-2 text-left">Status Comissão</th>
-                {isAdmin && <th className="px-4 py-2"></th>}
-              </tr>
-            </thead>
-            <tbody>
-              {linhas.map((l) => (
-                <tr key={l.id} className="border-b hover:bg-onforge-cream/60">
-                  <td className="px-4 py-3">{l.cliente_nome || l.cliente_nome_olist}</td>
-                  {isAdmin && <td className="px-4 py-3">{l.vendedor_nome || '-'}</td>}
-                  <td className="px-4 py-3">
-                    <span className={`px-2 py-1 rounded text-white text-xs ${SITUACAO_COR[l.situacao] || 'bg-onforge-gray'}`}>
-                      {l.situacao}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3">{formatMoney(l.recebido)}</td>
-                  <td className="px-4 py-3 font-medium">{l.valor_comissao ? formatMoney(l.valor_comissao) : '-'}</td>
-                  <td className="px-4 py-3">
-                    {l.status_pagamento_comissao ? (
-                      <span className={`px-2 py-1 rounded text-white text-xs ${STATUS_PAGAMENTO_COR[l.status_pagamento_comissao]}`}>
-                        {STATUS_PAGAMENTO_LABEL[l.status_pagamento_comissao]}
-                      </span>
-                    ) : '-'}
-                  </td>
-                  {isAdmin && (
-                    <td className="px-4 py-3 whitespace-nowrap">
-                      {l.comissao_id && (
-                        <button onClick={() => abrirPagamento(l)} className="text-onforge-black hover:opacity-70 text-sm">
-                          {l.status_pagamento_comissao === 'paga' ? 'Ver/Editar Pagamento' : 'Registrar Pagamento'}
-                        </button>
-                      )}
-                    </td>
-                  )}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        agruparPorMes(linhas).map((grupo) => (
+          <div key={grupo.chave} className="mb-6">
+            <h3 className="text-lg font-semibold font-display mb-2">{grupo.label}</h3>
+            <TabelaComissoes linhas={grupo.linhas} isAdmin={isAdmin} abrirPagamento={abrirPagamento} />
+          </div>
+        ))
       )}
 
       <Modal isOpen={!!pagamentoModal} title="Pagamento da Comissão" onClose={() => setPagamentoModal(null)}>
