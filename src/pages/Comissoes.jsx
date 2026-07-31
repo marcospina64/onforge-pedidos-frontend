@@ -42,6 +42,10 @@ function calcularProximoCiclo(linhas) {
   return datas.reduce((min, d) => (d < min ? d : min), datas[0])
 }
 
+function subtotalComissao(linhas) {
+  return linhas.reduce((soma, l) => soma + Number(l.valor_comissao || 0), 0)
+}
+
 function agruparPorMes(linhas) {
   const grupos = {}
   const semPrevisao = []
@@ -116,6 +120,9 @@ function TabelaComissoes({ linhas, isAdmin, abrirPagamento }) {
           ))}
         </tbody>
       </table>
+      <div className="px-4 py-3 border-t bg-onforge-cream/60 flex justify-end">
+        <p className="text-sm font-semibold">Valor Previsto: <span className="text-base">{formatMoney(subtotalComissao(linhas))}</span></p>
+      </div>
     </div>
   )
 }

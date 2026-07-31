@@ -1,10 +1,20 @@
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import Logo from '../components/Logo'
+import api from '../services/api'
+import { formatDate } from '../utils/format'
 
 export default function Home() {
   const navigate = useNavigate()
   const { user, logout, isAdmin } = useAuth()
+  const [indicadores, setIndicadores] = useState(null)
+
+  useEffect(() => {
+    if (isAdmin) {
+      api.get('/pedidos/indicadores-admin').then((res) => setIndicadores(res.data))
+    }
+  }, [isAdmin])
 
   const handleLogout = async () => {
     await logout()
@@ -44,9 +54,23 @@ export default function Home() {
       </nav>
 
       <main className="max-w-7xl mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h2 className="text-3xl font-bold font-display text-onforge-black mb-2">Bem-vindo, {user?.nome}!</h2>
-          <p className="text-onforge-black/60">{user?.email} · {isAdmin ? 'Administrador' : 'Vendedor'}</p>
+        <div className="mb-8 flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <h2 className="text-3xl font-bold font-display text-onforge-black mb-2">Bem-vindo, {user?.nome}!</h2>
+            <p className="text-onforge-black/60">{user?.email} · {isAdmin ? 'Administrador' : 'Vendedor'}</p>
+          </div>
+          {isAdmin && indicadores && (
+            <div className="flex flex-wrap gap-3">
+              <div className="bg-white rounded-lg shadow p-4 min-w-[180px]">
+                <p className="text-xs text-onforge-black/50 mb-1">Novos Pedidos ({formatDate(indicadores.data_hoje)})</p>
+                <p className="text-2xl font-bold">{indicadores.novos_hoje}</p>
+              </div>
+              <div className="bg-white rounded-lg shadow p-4 min-w-[180px]">
+                <p className="text-xs text-onforge-black/50 mb-1">Pedidos não Exportados</p>
+                <p className="text-2xl font-bold">{indicadores.nao_exportados}</p>
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
