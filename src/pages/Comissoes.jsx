@@ -65,6 +65,8 @@ function TabelaComissoes({ linhas, isAdmin, abrirPagamento }) {
             <th className="px-4 py-2 text-left">Cliente</th>
             {isAdmin && <th className="px-4 py-2 text-left">Vendedor</th>}
             <th className="px-4 py-2 text-left">Situação</th>
+            <th className="px-4 py-2 text-left">Dt Venda</th>
+            <th className="px-4 py-2 text-left">Nr NF</th>
             <th className="px-4 py-2 text-left">Venc. Boleto</th>
             <th className="px-4 py-2 text-left">Recebido</th>
             <th className="px-4 py-2 text-left">Comissão</th>
@@ -83,6 +85,8 @@ function TabelaComissoes({ linhas, isAdmin, abrirPagamento }) {
                   {l.situacao}
                 </span>
               </td>
+              <td className="px-4 py-3">{formatDate(l.data_emissao)}</td>
+              <td className="px-4 py-3">{l.numero_nf || '-'}</td>
               <td className="px-4 py-3">{formatDate(l.data_vencimento)}</td>
               <td className="px-4 py-3">{formatMoney(l.recebido)}</td>
               <td className="px-4 py-3 font-medium">{l.valor_comissao ? formatMoney(l.valor_comissao) : '-'}</td>
