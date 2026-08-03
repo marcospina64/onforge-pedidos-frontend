@@ -58,7 +58,7 @@ function subtotalComissao(linhas) {
 }
 
 function subtotalAReceber(linhas) {
-  return linhas.reduce((soma, l) => soma + Number(l.valor_a_receber_estimado || 0), 0)
+  return linhas.reduce((soma, l) => soma + Number(l.valor_documento || 0), 0)
 }
 
 function agruparPorMes(linhas) {
@@ -113,7 +113,7 @@ function TabelaComissoes({ linhas, isAdmin, abrirPagamento }) {
               </td>
               <td className="px-4 py-3">{formatDate(l.data_emissao)}</td>
               <td className="px-4 py-3">{l.numero_nf || '-'}</td>
-              <td className="px-4 py-3">{l.valor_a_receber_estimado ? formatMoney(l.valor_a_receber_estimado) : '-'}</td>
+              <td className="px-4 py-3">{formatMoney(l.valor_documento)}</td>
               <td className="px-4 py-3">{formatDate(l.data_vencimento)}</td>
               <td className="px-4 py-3">{formatMoney(l.recebido)}</td>
               <td className="px-4 py-3 font-medium">{l.valor_comissao ? formatMoney(l.valor_comissao) : '-'}</td>
@@ -143,11 +143,23 @@ function TabelaComissoes({ linhas, isAdmin, abrirPagamento }) {
             )
           })}
         </tbody>
+        <tfoot>
+          <tr className="border-t-2 border-onforge-black/20 bg-onforge-cream/60 font-semibold">
+            <td className="px-4 py-3">Total</td>
+            {isAdmin && <td className="px-4 py-3"></td>}
+            <td className="px-4 py-3"></td>
+            <td className="px-4 py-3"></td>
+            <td className="px-4 py-3"></td>
+            <td className="px-4 py-3">{formatMoney(subtotalAReceber(linhas))}</td>
+            <td className="px-4 py-3"></td>
+            <td className="px-4 py-3"></td>
+            <td className="px-4 py-3">{formatMoney(subtotalComissao(linhas))}</td>
+            <td className="px-4 py-3"></td>
+            <td className="px-4 py-3"></td>
+            {isAdmin && <td className="px-4 py-3"></td>}
+          </tr>
+        </tfoot>
       </table>
-      <div className="px-4 py-3 border-t bg-onforge-cream/60 flex justify-end gap-6">
-        <p className="text-sm font-semibold">À Receber: <span className="text-base">{formatMoney(subtotalAReceber(linhas))}</span></p>
-        <p className="text-sm font-semibold">Valor Previsto: <span className="text-base">{formatMoney(subtotalComissao(linhas))}</span></p>
-      </div>
     </div>
   )
 }
