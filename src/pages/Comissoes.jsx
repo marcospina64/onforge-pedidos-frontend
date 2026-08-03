@@ -28,6 +28,17 @@ const PAGAMENTO_VAZIO = { data_pagamento_comissao: '', valor_pago: '', forma_pag
 
 const hojeISO = () => new Date().toISOString().slice(0, 10)
 
+// Dias corridos entre a data de vencimento (coluna D da planilha Olist) e hoje, em UTC
+// (mesma convenção de fuso já usada em formatDate/hojeISO, para não dar diferença de 1 dia).
+function diasAtraso(dataVencimento) {
+  if (!dataVencimento) return 0
+  const vencimento = new Date(dataVencimento)
+  const vencUTC = Date.UTC(vencimento.getUTCFullYear(), vencimento.getUTCMonth(), vencimento.getUTCDate())
+  const hoje = new Date()
+  const hojeUTC = Date.UTC(hoje.getUTCFullYear(), hoje.getUTCMonth(), hoje.getUTCDate())
+  return Math.floor((hojeUTC - vencUTC) / 86400000)
+}
+
 // Data prevista 'YYYY-MM-DD' -> "Agosto/2026"
 function formatarMesAno(dataISO) {
   const [ano, mes] = dataISO.split('-').map(Number)
@@ -68,7 +79,7 @@ function TabelaComissoes({ linhas, isAdmin, abrirPagamento }) {
           <tr>
             <th className="px-4 py-2 text-left">Cliente</th>
             {isAdmin && <th className="px-4 py-2 text-left">Vendedor</th>}
-            <th className="px-4 py-2 text-left">Situação</th>
+            <th className="px-4 py-2 text-left">Status Recebimento</th>
             <th className="px-4 py-2 text-left">Dt Venda</th>
             <th className="px-4 py-2 text-left">Nr NF</th>
             <th className="px-4 py-2 text-left">Venc. Boleto</th>
@@ -80,14 +91,20 @@ function TabelaComissoes({ linhas, isAdmin, abrirPagamento }) {
           </tr>
         </thead>
         <tbody>
-          {linhas.map((l) => (
+          {linhas.map((l) => {
+            const atraso = l.situacao === 'Em aberto' ? diasAtraso(l.data_vencimento) : 0
+            return (
             <tr key={l.id} className="border-b hover:bg-onforge-cream/60">
               <td className="px-4 py-3">{l.cliente_nome || l.cliente_nome_olist}</td>
               {isAdmin && <td className="px-4 py-3">{l.vendedor_nome || '-'}</td>}
               <td className="px-4 py-3">
-                <span className={`px-2 py-1 rounded text-white text-xs ${SITUACAO_COR[l.situacao] || 'bg-onforge-gray'}`}>
-                  {l.situacao}
-                </span>
+                {atraso >= 3 ? (
+                  <span className="text-red-600 font-semibold text-xs">{`Atraso = ${atraso}`}</span>
+                ) : (
+                  <span className={`px-2 py-1 rounded text-white text-xs ${SITUACAO_COR[l.situacao] || 'bg-onforge-gray'}`}>
+                    {l.situacao}
+                  </span>
+                )}
               </td>
               <td className="px-4 py-3">{formatDate(l.data_emissao)}</td>
               <td className="px-4 py-3">{l.numero_nf || '-'}</td>
@@ -117,7 +134,8 @@ function TabelaComissoes({ linhas, isAdmin, abrirPagamento }) {
                 </td>
               )}
             </tr>
-          ))}
+            )
+          })}
         </tbody>
       </table>
       <div className="px-4 py-3 border-t bg-onforge-cream/60 flex justify-end">
