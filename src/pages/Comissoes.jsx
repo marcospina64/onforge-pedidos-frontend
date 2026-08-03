@@ -57,6 +57,10 @@ function subtotalComissao(linhas) {
   return linhas.reduce((soma, l) => soma + Number(l.valor_comissao || 0), 0)
 }
 
+function subtotalAReceber(linhas) {
+  return linhas.reduce((soma, l) => soma + Number(l.valor_a_receber_estimado || 0), 0)
+}
+
 function agruparPorMes(linhas) {
   const grupos = {}
   const semPrevisao = []
@@ -82,6 +86,7 @@ function TabelaComissoes({ linhas, isAdmin, abrirPagamento }) {
             <th className="px-4 py-2 text-left">Status Recebimento</th>
             <th className="px-4 py-2 text-left">Dt Venda</th>
             <th className="px-4 py-2 text-left">Nr NF</th>
+            <th className="px-4 py-2 text-left">À Receber</th>
             <th className="px-4 py-2 text-left">Venc. Boleto</th>
             <th className="px-4 py-2 text-left">Recebido</th>
             <th className="px-4 py-2 text-left">Comissão</th>
@@ -99,7 +104,7 @@ function TabelaComissoes({ linhas, isAdmin, abrirPagamento }) {
               {isAdmin && <td className="px-4 py-3">{l.vendedor_nome || '-'}</td>}
               <td className="px-4 py-3">
                 {atraso >= 3 ? (
-                  <span className="text-red-600 font-semibold text-xs">{`Atraso = ${atraso}`}</span>
+                  <span className="px-2 py-1 rounded bg-red-600 text-yellow-300 text-xs">{`Atraso = ${atraso} dias`}</span>
                 ) : (
                   <span className={`px-2 py-1 rounded text-white text-xs ${SITUACAO_COR[l.situacao] || 'bg-onforge-gray'}`}>
                     {l.situacao}
@@ -108,6 +113,7 @@ function TabelaComissoes({ linhas, isAdmin, abrirPagamento }) {
               </td>
               <td className="px-4 py-3">{formatDate(l.data_emissao)}</td>
               <td className="px-4 py-3">{l.numero_nf || '-'}</td>
+              <td className="px-4 py-3">{l.valor_a_receber_estimado ? formatMoney(l.valor_a_receber_estimado) : '-'}</td>
               <td className="px-4 py-3">{formatDate(l.data_vencimento)}</td>
               <td className="px-4 py-3">{formatMoney(l.recebido)}</td>
               <td className="px-4 py-3 font-medium">{l.valor_comissao ? formatMoney(l.valor_comissao) : '-'}</td>
@@ -138,7 +144,8 @@ function TabelaComissoes({ linhas, isAdmin, abrirPagamento }) {
           })}
         </tbody>
       </table>
-      <div className="px-4 py-3 border-t bg-onforge-cream/60 flex justify-end">
+      <div className="px-4 py-3 border-t bg-onforge-cream/60 flex justify-end gap-6">
+        <p className="text-sm font-semibold">À Receber: <span className="text-base">{formatMoney(subtotalAReceber(linhas))}</span></p>
         <p className="text-sm font-semibold">Valor Previsto: <span className="text-base">{formatMoney(subtotalComissao(linhas))}</span></p>
       </div>
     </div>
