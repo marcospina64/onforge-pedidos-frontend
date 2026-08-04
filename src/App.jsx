@@ -17,6 +17,7 @@ import ComissoesImportar from './pages/ComissoesImportar'
 import ComissoesPendencias from './pages/ComissoesPendencias'
 import ComissoesClientesSemVendedor from './pages/ComissoesClientesSemVendedor'
 import ComissoesPercentuais from './pages/ComissoesPercentuais'
+import HistoricoLogin from './pages/HistoricoLogin'
 
 function App() {
   return (
@@ -141,6 +142,14 @@ function App() {
             element={
               <ProtectedRoute adminOnly>
                 <ComissoesPercentuais />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/historico-login"
+            element={
+              <ProtectedRoute adminOnly>
+                <HistoricoLogin />
               </ProtectedRoute>
             }
           />

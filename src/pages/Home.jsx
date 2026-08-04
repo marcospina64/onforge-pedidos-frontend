@@ -35,6 +35,7 @@ export default function Home() {
     { title: 'Importar Preços', description: 'Atualizar tabela de preços via Excel', path: '/produtos/importar', icon: '📥' },
     { title: 'Importar Clientes', description: 'Importar clientes via Excel', path: '/clientes/importar', icon: '📥' },
     { title: 'Configurações', description: 'Definir limite de desconto', path: '/configuracoes', icon: '⚙️' },
+    { title: 'Histórico de Login', description: 'Acompanhar acessos dos usuários ao sistema', path: '/historico-login', icon: '🔑' },
   ]
 
   const modules = isAdmin ? modulesAdmin : modulesVendedor

@@ -21,3 +21,11 @@ export const formatDate = (dateString) => {
 
   return new Date(dateString).toLocaleDateString('pt-BR', { timeZone: 'UTC' })
 }
+
+// dateString: timestamp real (ex.: criado_em de historico_login), não uma data "sem hora" —
+// por isso converte para o fuso de Brasília em vez de usar UTC como formatDate.
+export const formatDateTime = (dateString) => {
+  if (!dateString) return '-'
+
+  return new Date(dateString).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })
+}
