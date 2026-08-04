@@ -39,9 +39,14 @@ export default function Produtos() {
       <div className="flex flex-wrap justify-between items-center gap-3 mb-6">
         <h1 className="text-3xl font-bold font-display">Catálogo de Produtos</h1>
         {isAdmin && (
-          <button onClick={() => navigate('/produtos/importar')} className="bg-onforge-gray text-white px-4 py-2 rounded hover:bg-black/70">
-            Importar Tabela de Preços
-          </button>
+          <div className="flex gap-3">
+            <button onClick={() => navigate('/produtos/importar')} className="bg-onforge-gray text-white px-4 py-2 rounded hover:bg-black/70">
+              Importar Tabela de Preços
+            </button>
+            <button onClick={() => navigate('/produtos/inativar')} className="bg-onforge-gray text-white px-4 py-2 rounded hover:bg-black/70">
+              Inativar Produto
+            </button>
+          </div>
         )}
       </div>
 
