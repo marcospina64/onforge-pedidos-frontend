@@ -46,9 +46,10 @@ export const AuthProvider = ({ children }) => {
   }
 
   const isAdmin = user?.tipo === 'admin'
+  const souMaster = !!user?.sou_master
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout, isAdmin }}>
+    <AuthContext.Provider value={{ user, loading, login, logout, isAdmin, souMaster }}>
       {children}
     </AuthContext.Provider>
   )

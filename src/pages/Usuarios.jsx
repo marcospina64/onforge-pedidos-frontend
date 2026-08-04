@@ -6,7 +6,7 @@ import Modal from '../components/Modal'
 
 const VAZIO = {
   nome: '', email: '', senha: '', tipo: 'vendedor', ativo: true,
-  celular: '', cidade: '', uf: '', observacoes: '',
+  celular: '', cidade: '', uf: '', observacoes: '', vendedor_master_id: '',
 }
 
 export default function Usuarios() {
@@ -44,7 +44,7 @@ export default function Usuarios() {
     setForm({
       nome: usuario.nome, email: usuario.email, senha: '', tipo: usuario.tipo, ativo: usuario.ativo,
       celular: usuario.celular || '', cidade: usuario.cidade || '', uf: usuario.uf || '',
-      observacoes: usuario.observacoes || '',
+      observacoes: usuario.observacoes || '', vendedor_master_id: usuario.vendedor_master_id || '',
     })
     setErro('')
     setModalOpen(true)
@@ -58,10 +58,11 @@ export default function Usuarios() {
         await api.put(`/usuarios/${editando.id}`, {
           nome: form.nome, email: form.email, tipo: form.tipo, ativo: form.ativo,
           celular: form.celular, cidade: form.cidade, uf: form.uf, observacoes: form.observacoes,
+          vendedor_master_id: form.vendedor_master_id || null,
           ...(form.senha ? { senha: form.senha } : {}),
         })
       } else {
-        await api.post('/usuarios', form)
+        await api.post('/usuarios', { ...form, vendedor_master_id: form.vendedor_master_id || null })
       }
       setModalOpen(false)
       carregar()
@@ -70,6 +71,10 @@ export default function Usuarios() {
     }
   }
 
+  // Um vendedor que já é Subordinado de outro Master não pode virar Master de mais ninguém
+  // (hierarquia de 1 nível só) — não aparece como opção. Ser Master de vários já é permitido.
+  const candidatosMaster = usuarios.filter((u) => u.tipo === 'vendedor' && u.ativo && u.id !== editando?.id && !u.vendedor_master_id)
+
   const columns = [
     { key: 'nome', label: 'Nome' },
     { key: 'email', label: 'Email' },
@@ -77,6 +82,10 @@ export default function Usuarios() {
     { key: 'cidade', label: 'Cidade' },
     { key: 'uf', label: 'UF' },
     { key: 'tipo', label: 'Tipo', render: (v) => (v === 'admin' ? 'Administrador' : 'Vendedor') },
+    {
+      key: 'vendedor_master_id', label: 'Equipe',
+      render: (v) => (v ? `Subordinado de ${usuarios.find((u) => u.id === v)?.nome || '?'}` : '-'),
+    },
     { key: 'ativo', label: 'Ativo', render: (v) => (v ? 'Sim' : 'Não') },
   ]
 
@@ -140,6 +149,22 @@ export default function Usuarios() {
               <option value="admin">Administrador</option>
             </select>
           </div>
+
+          {form.tipo === 'vendedor' && (
+            <div>
+              <label className="block text-sm font-medium text-onforge-black/80 mb-1">Vendedor Master (Equipe de Venda)</label>
+              <select
+                value={form.vendedor_master_id} onChange={(e) => setForm({ ...form, vendedor_master_id: e.target.value })}
+                className="w-full px-3 py-2 border border-onforge-gray/50 rounded-md"
+              >
+                <option value="">Nenhum (não faz parte de uma equipe)</option>
+                {candidatosMaster.map((u) => <option key={u.id} value={u.id}>{u.nome}</option>)}
+              </select>
+              <p className="text-xs text-onforge-black/50 mt-1">
+                Selecione o Master responsável por esse vendedor, caso ele faça parte de uma Equipe de Venda.
+              </p>
+            </div>
+          )}
 
           <div>
             <label className="block text-sm font-medium text-onforge-black/80 mb-1">Celular</label>

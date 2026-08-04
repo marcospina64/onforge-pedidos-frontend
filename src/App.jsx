@@ -17,6 +17,7 @@ import ComissoesImportar from './pages/ComissoesImportar'
 import ComissoesPendencias from './pages/ComissoesPendencias'
 import ComissoesClientesSemVendedor from './pages/ComissoesClientesSemVendedor'
 import ComissoesPercentuais from './pages/ComissoesPercentuais'
+import ComissoesPercentuaisMaster from './pages/ComissoesPercentuaisMaster'
 import HistoricoLogin from './pages/HistoricoLogin'
 import ProdutosInativar from './pages/ProdutosInativar'
 
@@ -143,6 +144,14 @@ function App() {
             element={
               <ProtectedRoute adminOnly>
                 <ComissoesPercentuais />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/comissoes/percentuais-master"
+            element={
+              <ProtectedRoute adminOnly>
+                <ComissoesPercentuaisMaster />
               </ProtectedRoute>
             }
           />

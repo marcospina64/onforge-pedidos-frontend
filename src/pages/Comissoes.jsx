@@ -75,14 +75,14 @@ function agruparPorMes(linhas) {
   return ordenado
 }
 
-function TabelaComissoes({ linhas, isAdmin, abrirPagamento }) {
+function TabelaComissoes({ linhas, isAdmin, mostrarVendedor = isAdmin, podeRegistrarPagamento = isAdmin, abrirPagamento }) {
   return (
     <div className="bg-white rounded-lg shadow overflow-x-auto">
       <table className="w-full text-sm">
         <thead className="bg-onforge-cream">
           <tr>
             <th className="px-4 py-2 text-left">Cliente</th>
-            {isAdmin && <th className="px-4 py-2 text-left">Vendedor</th>}
+            {mostrarVendedor && <th className="px-4 py-2 text-left">Vendedor</th>}
             <th className="px-4 py-2 text-left">Status Recebimento</th>
             <th className="px-4 py-2 text-left">Dt Venda</th>
             <th className="px-4 py-2 text-left">Nr NF</th>
@@ -92,7 +92,7 @@ function TabelaComissoes({ linhas, isAdmin, abrirPagamento }) {
             <th className="px-4 py-2 text-left">Comissão</th>
             <th className="px-4 py-2 text-left">Status Comissão</th>
             <th className="px-4 py-2 text-left">Prev. Comissão</th>
-            {isAdmin && <th className="px-4 py-2"></th>}
+            {podeRegistrarPagamento && <th className="px-4 py-2"></th>}
           </tr>
         </thead>
         <tbody>
@@ -101,7 +101,7 @@ function TabelaComissoes({ linhas, isAdmin, abrirPagamento }) {
             return (
             <tr key={l.id} className="border-b hover:bg-onforge-cream/60">
               <td className="px-4 py-3">{l.cliente_nome || l.cliente_nome_olist}</td>
-              {isAdmin && <td className="px-4 py-3">{l.vendedor_nome || '-'}</td>}
+              {mostrarVendedor && <td className="px-4 py-3">{l.vendedor_nome || '-'}</td>}
               <td className="px-4 py-3">
                 {atraso >= 3 ? (
                   <span className="px-2 py-1 rounded bg-red-600 text-yellow-300 text-xs">{`Atraso = ${atraso} dias`}</span>
@@ -138,7 +138,7 @@ function TabelaComissoes({ linhas, isAdmin, abrirPagamento }) {
                   <span className="text-xs text-onforge-black/40 block">estimativa</span>
                 )}
               </td>
-              {isAdmin && (
+              {podeRegistrarPagamento && (
                 <td className="px-4 py-3 whitespace-nowrap">
                   {l.comissao_id && (
                     <button onClick={() => abrirPagamento(l)} className="text-onforge-black hover:opacity-70 text-sm">
@@ -154,7 +154,7 @@ function TabelaComissoes({ linhas, isAdmin, abrirPagamento }) {
         <tfoot>
           <tr className="border-t-2 border-onforge-black/20 bg-onforge-cream/60 font-semibold">
             <td className="px-4 py-3">Total</td>
-            {isAdmin && <td className="px-4 py-3"></td>}
+            {mostrarVendedor && <td className="px-4 py-3"></td>}
             <td className="px-4 py-3"></td>
             <td className="px-4 py-3"></td>
             <td className="px-4 py-3"></td>
@@ -164,7 +164,7 @@ function TabelaComissoes({ linhas, isAdmin, abrirPagamento }) {
             <td className="px-4 py-3">{formatMoney(subtotalComissao(linhas))}</td>
             <td className="px-4 py-3"></td>
             <td className="px-4 py-3"></td>
-            {isAdmin && <td className="px-4 py-3"></td>}
+            {podeRegistrarPagamento && <td className="px-4 py-3"></td>}
           </tr>
         </tfoot>
       </table>
@@ -174,8 +174,12 @@ function TabelaComissoes({ linhas, isAdmin, abrirPagamento }) {
 
 export default function Comissoes() {
   const navigate = useNavigate()
-  const { isAdmin } = useAuth()
+  const { isAdmin, souMaster } = useAuth()
+  const [aba, setAba] = useState('minhas')
   const [linhas, setLinhas] = useState([])
+  const [linhasEquipe, setLinhasEquipe] = useState([])
+  const [loadingEquipe, setLoadingEquipe] = useState(true)
+  const [masterFiltro, setMasterFiltro] = useState('')
   const [indicadores, setIndicadores] = useState(null)
   const [loading, setLoading] = useState(true)
   const [vendedores, setVendedores] = useState([])
@@ -194,7 +198,12 @@ export default function Comissoes() {
       api.get('/comissoes/pendencias').then((res) => setPendenciasCount(res.data.length))
       api.get('/comissoes/clientes-sem-vendedor').then((res) => setSemVendedorCount(res.data.length))
     }
+    if (souMaster) carregarEquipe()
   }, [])
+
+  // Masters existentes (vendedores com ao menos 1 Subordinado) — só usado pelo seletor do admin.
+  const masters = vendedores.filter((m) => vendedores.some((v) => v.vendedor_master_id === m.id))
+  const mostrarAbaEquipe = souMaster || (isAdmin && masters.length > 0)
 
   const carregar = async (vendedorId = vendedorFiltro) => {
     try {
@@ -210,6 +219,23 @@ export default function Comissoes() {
     } finally {
       setLoading(false)
     }
+  }
+
+  const carregarEquipe = async (masterId = masterFiltro) => {
+    try {
+      setLoadingEquipe(true)
+      const params = {}
+      if (isAdmin && masterId) params.master_id = masterId
+      const res = await api.get('/comissoes/equipe', { params })
+      setLinhasEquipe(res.data)
+    } finally {
+      setLoadingEquipe(false)
+    }
+  }
+
+  const aplicarFiltroEquipe = (e) => {
+    e.preventDefault()
+    carregarEquipe(masterFiltro)
   }
 
   const aplicarFiltro = (e) => {
@@ -228,12 +254,14 @@ export default function Comissoes() {
     })
   }
 
+  const recarregarAbaAtual = () => (aba === 'equipe' ? carregarEquipe(masterFiltro) : carregar(vendedorFiltro))
+
   const salvarPagamento = async () => {
     setErro('')
     try {
       await api.patch(`/comissoes/${pagamentoModal.comissao_id}/pagamento`, pagamentoForm)
       setPagamentoModal(null)
-      carregar(vendedorFiltro)
+      recarregarAbaAtual()
     } catch (err) {
       setErro(err.response?.data?.error || 'Erro ao registrar pagamento')
     }
@@ -244,7 +272,7 @@ export default function Comissoes() {
     try {
       await api.delete(`/comissoes/${pagamentoModal.comissao_id}/pagamento`)
       setPagamentoModal(null)
-      carregar(vendedorFiltro)
+      recarregarAbaAtual()
     } catch (err) {
       setErro(err.response?.data?.error || 'Erro ao excluir pagamento')
     }
@@ -272,12 +300,32 @@ export default function Comissoes() {
             <button onClick={() => navigate('/comissoes/percentuais')} className="bg-onforge-gray text-white px-4 py-2 rounded hover:bg-black/70 text-sm">
               Percentuais de Comissão
             </button>
+            <button onClick={() => navigate('/comissoes/percentuais-master')} className="bg-onforge-gray text-white px-4 py-2 rounded hover:bg-black/70 text-sm">
+              Percentual do Master
+            </button>
           </div>
         )}
       </div>
 
+      {mostrarAbaEquipe && (
+        <div className="flex gap-1 bg-onforge-cream rounded-md p-1 mb-6 w-fit">
+          <button
+            onClick={() => setAba('minhas')}
+            className={`px-3 py-1.5 rounded text-sm ${aba === 'minhas' ? 'bg-onforge-black text-white' : 'text-onforge-black/70'}`}
+          >
+            {isAdmin ? 'Comissões' : 'Minhas Comissões'}
+          </button>
+          <button
+            onClick={() => setAba('equipe')}
+            className={`px-3 py-1.5 rounded text-sm ${aba === 'equipe' ? 'bg-onforge-black text-white' : 'text-onforge-black/70'}`}
+          >
+            Minha Equipe
+          </button>
+        </div>
+      )}
+
       <div className="bg-white rounded-lg shadow p-4 mb-6 flex flex-wrap gap-3 items-end justify-between">
-        {isAdmin ? (
+        {aba === 'minhas' && isAdmin && (
           <form onSubmit={aplicarFiltro} className="flex flex-wrap gap-3 items-end">
             <div>
               <label className="block text-xs font-medium text-onforge-black/80 mb-1">Vendedor</label>
@@ -291,7 +339,23 @@ export default function Comissoes() {
             </div>
             <button type="submit" className="bg-onforge-gray/30 px-4 py-2 rounded hover:bg-onforge-gray/40 text-sm">Filtrar</button>
           </form>
-        ) : <div />}
+        )}
+        {aba === 'equipe' && isAdmin && (
+          <form onSubmit={aplicarFiltroEquipe} className="flex flex-wrap gap-3 items-end">
+            <div>
+              <label className="block text-xs font-medium text-onforge-black/80 mb-1">Master</label>
+              <select
+                value={masterFiltro} onChange={(e) => setMasterFiltro(e.target.value)}
+                className="px-3 py-2 border border-onforge-gray/50 rounded-md text-sm"
+              >
+                <option value="">Selecione...</option>
+                {masters.map((v) => <option key={v.id} value={v.id}>{v.nome}</option>)}
+              </select>
+            </div>
+            <button type="submit" className="bg-onforge-gray/30 px-4 py-2 rounded hover:bg-onforge-gray/40 text-sm">Filtrar</button>
+          </form>
+        )}
+        {!isAdmin && <div />}
 
         <div className="flex gap-1 bg-onforge-cream rounded-md p-1">
           <button
@@ -309,7 +373,7 @@ export default function Comissoes() {
         </div>
       </div>
 
-      {indicadores && (
+      {aba === 'minhas' && indicadores && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
           <div className="bg-white rounded-lg shadow p-4">
             <p className="text-xs text-onforge-black/50 mb-1">Faturamento Recebido</p>
@@ -332,31 +396,41 @@ export default function Comissoes() {
         </div>
       )}
 
-      {loading ? (
-        <div className="text-center py-8">Carregando...</div>
-      ) : linhas.length === 0 ? (
-        <div className="text-center py-8 text-onforge-black/50">Nenhum registro de comissão encontrado</div>
-      ) : cicloFiltro === 'proximo' ? (
-        (() => {
-          const proximoCiclo = calcularProximoCiclo(linhas)
-          const linhasCiclo = proximoCiclo ? linhas.filter((l) => l.dt_prevista_pagamento_comissao === proximoCiclo) : []
+      {(() => {
+        const linhasAtivas = aba === 'equipe' ? linhasEquipe : linhas
+        const carregandoAtivo = aba === 'equipe' ? loadingEquipe : loading
+        const mostrarVendedorColuna = aba === 'equipe' ? true : isAdmin
+
+        if (carregandoAtivo) return <div className="text-center py-8">Carregando...</div>
+        if (aba === 'equipe' && isAdmin && !masterFiltro) {
+          return <div className="text-center py-8 text-onforge-black/50">Selecione um Master para ver as comissões da equipe</div>
+        }
+        if (linhasAtivas.length === 0) {
+          return (
+            <div className="text-center py-8 text-onforge-black/50">
+              {aba === 'equipe' ? 'Nenhum registro de comissão da equipe encontrado' : 'Nenhum registro de comissão encontrado'}
+            </div>
+          )
+        }
+        if (cicloFiltro === 'proximo') {
+          const proximoCiclo = calcularProximoCiclo(linhasAtivas)
+          const linhasCiclo = proximoCiclo ? linhasAtivas.filter((l) => l.dt_prevista_pagamento_comissao === proximoCiclo) : []
           return linhasCiclo.length === 0 ? (
             <div className="text-center py-8 text-onforge-black/50">Nenhum ciclo futuro com comissão pendente</div>
           ) : (
             <div>
               <p className="text-sm text-onforge-black/60 mb-2">Próximo ciclo de pagamento: <strong>{formatDate(proximoCiclo)}</strong></p>
-              <TabelaComissoes linhas={linhasCiclo} isAdmin={isAdmin} abrirPagamento={abrirPagamento} />
+              <TabelaComissoes linhas={linhasCiclo} isAdmin={isAdmin} mostrarVendedor={mostrarVendedorColuna} abrirPagamento={abrirPagamento} />
             </div>
           )
-        })()
-      ) : (
-        agruparPorMes(linhas).map((grupo) => (
+        }
+        return agruparPorMes(linhasAtivas).map((grupo) => (
           <div key={grupo.chave} className="mb-6">
             <h3 className="text-lg font-semibold font-display mb-2">{grupo.label}</h3>
-            <TabelaComissoes linhas={grupo.linhas} isAdmin={isAdmin} abrirPagamento={abrirPagamento} />
+            <TabelaComissoes linhas={grupo.linhas} isAdmin={isAdmin} mostrarVendedor={mostrarVendedorColuna} abrirPagamento={abrirPagamento} />
           </div>
         ))
-      )}
+      })()}
 
       <Modal isOpen={!!pagamentoModal} title="Pagamento da Comissão" onClose={() => setPagamentoModal(null)}>
         {pagamentoModal && (
