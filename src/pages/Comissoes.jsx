@@ -54,7 +54,7 @@ function calcularProximoCiclo(linhas) {
 }
 
 function subtotalComissao(linhas) {
-  return linhas.reduce((soma, l) => soma + Number(l.valor_comissao || 0), 0)
+  return linhas.reduce((soma, l) => soma + Number(l.valor_comissao || l.valor_comissao_estimado || 0), 0)
 }
 
 function subtotalAReceber(linhas) {
@@ -116,12 +116,20 @@ function TabelaComissoes({ linhas, isAdmin, abrirPagamento }) {
               <td className="px-4 py-3">{formatMoney(l.valor_documento)}</td>
               <td className="px-4 py-3">{formatDate(l.data_vencimento)}</td>
               <td className="px-4 py-3">{formatMoney(l.recebido)}</td>
-              <td className="px-4 py-3 font-medium">{l.valor_comissao ? formatMoney(l.valor_comissao) : '-'}</td>
+              <td className="px-4 py-3 font-medium">
+                {l.valor_comissao ? (
+                  formatMoney(l.valor_comissao)
+                ) : l.valor_comissao_estimado ? (
+                  <span className="italic text-onforge-black/60">{formatMoney(l.valor_comissao_estimado)}</span>
+                ) : '-'}
+              </td>
               <td className="px-4 py-3">
                 {l.status_pagamento_comissao ? (
                   <span className={`px-2 py-1 rounded text-white text-xs ${STATUS_PAGAMENTO_COR[l.status_pagamento_comissao]}`}>
                     {STATUS_PAGAMENTO_LABEL[l.status_pagamento_comissao]}
                   </span>
+                ) : l.valor_comissao_estimado ? (
+                  <span className="px-2 py-1 rounded bg-onforge-gray text-white text-xs">A receber</span>
                 ) : '-'}
               </td>
               <td className="px-4 py-3">
