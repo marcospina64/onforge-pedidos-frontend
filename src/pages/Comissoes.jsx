@@ -8,6 +8,7 @@ import { useAuth } from '../context/AuthContext'
 const SITUACAO_COR = {
   'Paga': 'bg-green-600',
   'Em aberto': 'bg-yellow-500',
+  'Cancelado': 'bg-red-500',
 }
 
 const STATUS_PAGAMENTO_LABEL = {
@@ -25,6 +26,8 @@ const STATUS_PAGAMENTO_COR = {
 const FORMA_PAGAMENTO_LABEL = { pix: 'Pix', cash: 'Cash', outra: 'Outra' }
 
 const PAGAMENTO_VAZIO = { data_pagamento_comissao: '', valor_pago: '', forma_pagamento_comissao: 'pix', forma_pagamento_outra_obs: '' }
+
+const RECEBIMENTO_VAZIO = { recebimento: '', recebido: '', forma_recebimento: '', meio_recebimento: '' }
 
 const hojeISO = () => new Date().toISOString().slice(0, 10)
 
@@ -75,7 +78,8 @@ function agruparPorMes(linhas) {
   return ordenado
 }
 
-function TabelaComissoes({ linhas, isAdmin, mostrarVendedor = isAdmin, podeRegistrarPagamento = isAdmin, abrirPagamento }) {
+function TabelaComissoes({ linhas, isAdmin, mostrarVendedor = isAdmin, podeRegistrarPagamento = isAdmin, podeRegistrarRecebimento = isAdmin, abrirPagamento, abrirRecebimento }) {
+  const mostrarColunaAcoes = podeRegistrarPagamento || podeRegistrarRecebimento
   return (
     <div className="bg-white rounded-lg shadow overflow-x-auto">
       <table className="w-full text-sm">
@@ -92,7 +96,7 @@ function TabelaComissoes({ linhas, isAdmin, mostrarVendedor = isAdmin, podeRegis
             <th className="px-4 py-2 text-left">Comissão</th>
             <th className="px-4 py-2 text-left">Status Comissão</th>
             <th className="px-4 py-2 text-left">Prev. Comissão</th>
-            {podeRegistrarPagamento && <th className="px-4 py-2"></th>}
+            {mostrarColunaAcoes && <th className="px-4 py-2"></th>}
           </tr>
         </thead>
         <tbody>
@@ -138,9 +142,14 @@ function TabelaComissoes({ linhas, isAdmin, mostrarVendedor = isAdmin, podeRegis
                   <span className="text-xs text-onforge-black/40 block">estimativa</span>
                 )}
               </td>
-              {podeRegistrarPagamento && (
+              {mostrarColunaAcoes && (
                 <td className="px-4 py-3 whitespace-nowrap">
-                  {l.comissao_id && (
+                  {podeRegistrarRecebimento && l.situacao === 'Em aberto' && (
+                    <button onClick={() => abrirRecebimento(l)} className="text-onforge-black hover:opacity-70 text-sm">
+                      Registrar Recebimento
+                    </button>
+                  )}
+                  {podeRegistrarPagamento && l.comissao_id && (
                     <button onClick={() => abrirPagamento(l)} className="text-onforge-black hover:opacity-70 text-sm">
                       {l.status_pagamento_comissao === 'paga' ? 'Ver/Editar Pagamento' : 'Registrar Pagamento'}
                     </button>
@@ -164,7 +173,7 @@ function TabelaComissoes({ linhas, isAdmin, mostrarVendedor = isAdmin, podeRegis
             <td className="px-4 py-3">{formatMoney(subtotalComissao(linhas))}</td>
             <td className="px-4 py-3"></td>
             <td className="px-4 py-3"></td>
-            {podeRegistrarPagamento && <td className="px-4 py-3"></td>}
+            {mostrarColunaAcoes && <td className="px-4 py-3"></td>}
           </tr>
         </tfoot>
       </table>
@@ -189,6 +198,8 @@ export default function Comissoes() {
   const [semVendedorCount, setSemVendedorCount] = useState(0)
   const [pagamentoModal, setPagamentoModal] = useState(null)
   const [pagamentoForm, setPagamentoForm] = useState(PAGAMENTO_VAZIO)
+  const [recebimentoModal, setRecebimentoModal] = useState(null)
+  const [recebimentoForm, setRecebimentoForm] = useState(RECEBIMENTO_VAZIO)
   const [erro, setErro] = useState('')
 
   useEffect(() => {
@@ -254,7 +265,29 @@ export default function Comissoes() {
     })
   }
 
+  const abrirRecebimento = (linha) => {
+    setErro('')
+    setRecebimentoModal(linha)
+    setRecebimentoForm({
+      recebimento: hojeISO(),
+      recebido: linha.valor_documento ?? '',
+      forma_recebimento: '',
+      meio_recebimento: '',
+    })
+  }
+
   const recarregarAbaAtual = () => (aba === 'equipe' ? carregarEquipe(masterFiltro) : carregar(vendedorFiltro))
+
+  const salvarRecebimento = async () => {
+    setErro('')
+    try {
+      await api.patch(`/comissoes/${recebimentoModal.id}/recebimento`, recebimentoForm)
+      setRecebimentoModal(null)
+      recarregarAbaAtual()
+    } catch (err) {
+      setErro(err.response?.data?.error || 'Erro ao registrar recebimento')
+    }
+  }
 
   const salvarPagamento = async () => {
     setErro('')
@@ -420,14 +453,14 @@ export default function Comissoes() {
           ) : (
             <div>
               <p className="text-sm text-onforge-black/60 mb-2">Próximo ciclo de pagamento: <strong>{formatDate(proximoCiclo)}</strong></p>
-              <TabelaComissoes linhas={linhasCiclo} isAdmin={isAdmin} mostrarVendedor={mostrarVendedorColuna} abrirPagamento={abrirPagamento} />
+              <TabelaComissoes linhas={linhasCiclo} isAdmin={isAdmin} mostrarVendedor={mostrarVendedorColuna} abrirPagamento={abrirPagamento} abrirRecebimento={abrirRecebimento} />
             </div>
           )
         }
         return agruparPorMes(linhasAtivas).map((grupo) => (
           <div key={grupo.chave} className="mb-6">
             <h3 className="text-lg font-semibold font-display mb-2">{grupo.label}</h3>
-            <TabelaComissoes linhas={grupo.linhas} isAdmin={isAdmin} mostrarVendedor={mostrarVendedorColuna} abrirPagamento={abrirPagamento} />
+            <TabelaComissoes linhas={grupo.linhas} isAdmin={isAdmin} mostrarVendedor={mostrarVendedorColuna} abrirPagamento={abrirPagamento} abrirRecebimento={abrirRecebimento} />
           </div>
         ))
       })()}
@@ -487,6 +520,58 @@ export default function Comissoes() {
                   Excluir
                 </button>
               )}
+            </div>
+          </div>
+        )}
+      </Modal>
+
+      <Modal isOpen={!!recebimentoModal} title="Registrar Recebimento" onClose={() => setRecebimentoModal(null)}>
+        {recebimentoModal && (
+          <div className="space-y-3">
+            <p className="text-sm text-onforge-black/60">
+              Cliente: <strong>{recebimentoModal.cliente_nome || recebimentoModal.cliente_nome_olist}</strong><br />
+              Valor do Documento: <strong>{formatMoney(recebimentoModal.valor_documento)}</strong>
+            </p>
+            <div>
+              <label className="block text-xs font-medium text-onforge-black/80 mb-1">Data do Recebimento</label>
+              <input
+                type="date" value={recebimentoForm.recebimento}
+                onChange={(e) => setRecebimentoForm({ ...recebimentoForm, recebimento: e.target.value })}
+                className="w-full px-3 py-2 border border-onforge-gray/50 rounded-md text-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-onforge-black/80 mb-1">Valor Recebido</label>
+              <input
+                type="number" step="0.01" value={recebimentoForm.recebido}
+                onChange={(e) => setRecebimentoForm({ ...recebimentoForm, recebido: e.target.value })}
+                className="w-full px-3 py-2 border border-onforge-gray/50 rounded-md text-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-onforge-black/80 mb-1">Forma de Recebimento (opcional)</label>
+              <input
+                type="text" value={recebimentoForm.forma_recebimento}
+                onChange={(e) => setRecebimentoForm({ ...recebimentoForm, forma_recebimento: e.target.value })}
+                placeholder="Ex: Pix"
+                className="w-full px-3 py-2 border border-onforge-gray/50 rounded-md text-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-onforge-black/80 mb-1">Meio de Recebimento (opcional)</label>
+              <input
+                type="text" value={recebimentoForm.meio_recebimento}
+                onChange={(e) => setRecebimentoForm({ ...recebimentoForm, meio_recebimento: e.target.value })}
+                className="w-full px-3 py-2 border border-onforge-gray/50 rounded-md text-sm"
+              />
+            </div>
+
+            {erro && <div className="p-3 bg-red-50 border border-red-200 text-red-700 rounded text-sm">{erro}</div>}
+
+            <div className="flex gap-2 pt-2">
+              <button onClick={salvarRecebimento} className="flex-1 bg-onforge-black text-white py-2 rounded hover:bg-black/80">
+                Salvar
+              </button>
             </div>
           </div>
         )}
