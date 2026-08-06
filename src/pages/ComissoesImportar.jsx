@@ -89,6 +89,17 @@ export default function ComissoesImportar() {
                 <button onClick={() => navigate('/comissoes/pendencias')} className="underline font-medium">revisar pendências</button>
               </p>
             )}
+            {resultado.excluidos_cancelados > 0 && (
+              <p className="mt-1">🗑 {resultado.excluidos_cancelados} excluído(s) por estarem "Cancelada" na planilha.</p>
+            )}
+            {resultado.cancelados_por_ausencia > 0 && (
+              <p className="mt-1">⚠ {resultado.cancelados_por_ausencia} cancelado(s) por não constarem mais na planilha.</p>
+            )}
+            {resultado.protegidos_comissao_paga > 0 && (
+              <p className="mt-1 text-amber-700">
+                ⚠ {resultado.protegidos_comissao_paga} marcado(s) "Cancelada" na planilha mas com comissão já paga vinculada — não excluído(s) automaticamente, veja os detalhes abaixo.
+              </p>
+            )}
             {resultado.erros?.length > 0 && (
               <ul className="mt-2 text-sm text-red-700 list-disc list-inside">
                 {resultado.erros.map((e, i) => <li key={i}>{e}</li>)}
