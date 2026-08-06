@@ -82,21 +82,22 @@ function TabelaComissoes({ linhas, isAdmin, mostrarVendedor = isAdmin, podeRegis
   const mostrarColunaAcoes = podeRegistrarPagamento || podeRegistrarRecebimento
   return (
     <div className="bg-white rounded-lg shadow overflow-x-auto">
-      <table className="w-full text-sm">
+      <table className="w-full text-xs">
         <thead className="bg-onforge-cream">
           <tr>
-            <th className="px-4 py-2 text-left">Cliente</th>
-            {mostrarVendedor && <th className="px-4 py-2 text-left">Vendedor</th>}
-            <th className="px-4 py-2 text-left">Status Recebimento</th>
-            <th className="px-4 py-2 text-left">Dt Venda</th>
-            <th className="px-4 py-2 text-left">Nr NF</th>
-            <th className="px-4 py-2 text-left">À Receber</th>
-            <th className="px-4 py-2 text-left">Venc. Boleto</th>
-            <th className="px-4 py-2 text-left">Recebido</th>
-            <th className="px-4 py-2 text-left">Comissão</th>
-            <th className="px-4 py-2 text-left">Status Comissão</th>
-            <th className="px-4 py-2 text-left">Prev. Comissão</th>
-            {mostrarColunaAcoes && <th className="px-4 py-2"></th>}
+            <th className="px-3 py-2 text-left">Cliente</th>
+            {mostrarVendedor && <th className="px-3 py-2 text-left">Vendedor</th>}
+            <th className="px-3 py-2 text-left">Status Recebimento</th>
+            <th className="px-3 py-2 text-left">Dt Venda</th>
+            <th className="px-3 py-2 text-left">Nr NF</th>
+            <th className="px-3 py-2 text-left">Parcela</th>
+            <th className="px-3 py-2 text-left">À Receber</th>
+            <th className="px-3 py-2 text-left">Venc. Boleto</th>
+            <th className="px-3 py-2 text-left">Recebido</th>
+            <th className="px-3 py-2 text-left">Comissão</th>
+            <th className="px-3 py-2 text-left">Status Comissão</th>
+            <th className="px-3 py-2 text-left">Prev. Comissão</th>
+            {mostrarColunaAcoes && <th className="px-3 py-2"></th>}
           </tr>
         </thead>
         <tbody>
@@ -104,9 +105,9 @@ function TabelaComissoes({ linhas, isAdmin, mostrarVendedor = isAdmin, podeRegis
             const atraso = l.situacao === 'Em aberto' ? diasAtraso(l.data_vencimento) : 0
             return (
             <tr key={l.id} className="border-b hover:bg-onforge-cream/60">
-              <td className="px-4 py-3">{l.cliente_nome || l.cliente_nome_olist}</td>
-              {mostrarVendedor && <td className="px-4 py-3">{l.vendedor_nome || '-'}</td>}
-              <td className="px-4 py-3">
+              <td className="px-3 py-2">{l.cliente_nome || l.cliente_nome_olist}</td>
+              {mostrarVendedor && <td className="px-3 py-2">{l.vendedor_nome || '-'}</td>}
+              <td className="px-3 py-2">
                 {atraso >= 3 ? (
                   <span className="px-2 py-1 rounded bg-red-600 text-yellow-300 text-xs">{`Atraso = ${atraso} dias`}</span>
                 ) : (
@@ -115,19 +116,20 @@ function TabelaComissoes({ linhas, isAdmin, mostrarVendedor = isAdmin, podeRegis
                   </span>
                 )}
               </td>
-              <td className="px-4 py-3">{formatDate(l.data_emissao)}</td>
-              <td className="px-4 py-3">{l.numero_nf || '-'}</td>
-              <td className="px-4 py-3">{formatMoney(l.valor_documento)}</td>
-              <td className="px-4 py-3">{formatDate(l.data_vencimento)}</td>
-              <td className="px-4 py-3">{formatMoney(l.recebido)}</td>
-              <td className="px-4 py-3 font-medium">
+              <td className="px-3 py-2">{formatDate(l.data_emissao)}</td>
+              <td className="px-3 py-2">{l.numero_nf || '-'}</td>
+              <td className="px-3 py-2">{l.parcela || '-'}</td>
+              <td className="px-3 py-2">{formatMoney(l.valor_documento)}</td>
+              <td className="px-3 py-2">{formatDate(l.data_vencimento)}</td>
+              <td className="px-3 py-2">{formatMoney(l.recebido)}</td>
+              <td className="px-3 py-2 font-medium">
                 {l.valor_comissao ? (
                   formatMoney(l.valor_comissao)
                 ) : l.valor_comissao_estimado ? (
                   <span className="italic text-onforge-black/60">{formatMoney(l.valor_comissao_estimado)}</span>
                 ) : '-'}
               </td>
-              <td className="px-4 py-3">
+              <td className="px-3 py-2">
                 {l.status_pagamento_comissao ? (
                   <span className={`px-2 py-1 rounded text-white text-xs ${STATUS_PAGAMENTO_COR[l.status_pagamento_comissao]}`}>
                     {STATUS_PAGAMENTO_LABEL[l.status_pagamento_comissao]}
@@ -136,14 +138,14 @@ function TabelaComissoes({ linhas, isAdmin, mostrarVendedor = isAdmin, podeRegis
                   <span className="px-2 py-1 rounded bg-onforge-gray text-white text-xs">A receber</span>
                 ) : '-'}
               </td>
-              <td className="px-4 py-3">
+              <td className="px-3 py-2">
                 {l.dt_prevista_pagamento_comissao ? formatDate(l.dt_prevista_pagamento_comissao) : '-'}
                 {l.situacao !== 'Paga' && l.dt_prevista_pagamento_comissao && (
                   <span className="text-xs text-onforge-black/40 block">estimativa</span>
                 )}
               </td>
               {mostrarColunaAcoes && (
-                <td className="px-4 py-3 whitespace-nowrap">
+                <td className="px-3 py-2 whitespace-nowrap">
                   {podeRegistrarRecebimento && l.situacao === 'Em aberto' && (
                     <button onClick={() => abrirRecebimento(l)} className="text-onforge-black hover:opacity-70 text-sm">
                       Registrar Recebimento
@@ -162,18 +164,19 @@ function TabelaComissoes({ linhas, isAdmin, mostrarVendedor = isAdmin, podeRegis
         </tbody>
         <tfoot>
           <tr className="border-t-2 border-onforge-black/20 bg-onforge-cream/60 font-semibold">
-            <td className="px-4 py-3">Total</td>
-            {mostrarVendedor && <td className="px-4 py-3"></td>}
-            <td className="px-4 py-3"></td>
-            <td className="px-4 py-3"></td>
-            <td className="px-4 py-3"></td>
-            <td className="px-4 py-3">{formatMoney(subtotalAReceber(linhas))}</td>
-            <td className="px-4 py-3"></td>
-            <td className="px-4 py-3"></td>
-            <td className="px-4 py-3">{formatMoney(subtotalComissao(linhas))}</td>
-            <td className="px-4 py-3"></td>
-            <td className="px-4 py-3"></td>
-            {mostrarColunaAcoes && <td className="px-4 py-3"></td>}
+            <td className="px-3 py-2">Total</td>
+            {mostrarVendedor && <td className="px-3 py-2"></td>}
+            <td className="px-3 py-2"></td>
+            <td className="px-3 py-2"></td>
+            <td className="px-3 py-2"></td>
+            <td className="px-3 py-2"></td>
+            <td className="px-3 py-2">{formatMoney(subtotalAReceber(linhas))}</td>
+            <td className="px-3 py-2"></td>
+            <td className="px-3 py-2"></td>
+            <td className="px-3 py-2">{formatMoney(subtotalComissao(linhas))}</td>
+            <td className="px-3 py-2"></td>
+            <td className="px-3 py-2"></td>
+            {mostrarColunaAcoes && <td className="px-3 py-2"></td>}
           </tr>
         </tfoot>
       </table>
