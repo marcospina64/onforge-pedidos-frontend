@@ -238,10 +238,12 @@ export default function Pedidos() {
                       )}
                       <button onClick={() => baixarPdf(p)} className="text-onforge-black hover:opacity-70 text-sm">PDF</button>
                       {isAdmin && (
-                        p.status === 'concluido' ? (
-                          <button onClick={() => exportarPedido(p)} className="text-onforge-black hover:opacity-70 text-sm">Exportar</button>
+                        ['concluido', 'exportado'].includes(p.status) ? (
+                          <button onClick={() => exportarPedido(p)} className="text-onforge-black hover:opacity-70 text-sm">
+                            {p.status === 'exportado' ? 'Reexportar' : 'Exportar'}
+                          </button>
                         ) : (
-                          <span className="text-onforge-gray text-sm cursor-not-allowed" title="Somente pedidos Concluídos podem ser exportados">Exportar</span>
+                          <span className="text-onforge-gray text-sm cursor-not-allowed" title="Somente pedidos Concluídos ou já Exportados podem ser exportados">Exportar</span>
                         )
                       )}
                     </td>
