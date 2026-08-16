@@ -115,6 +115,24 @@ export default function Pedidos() {
     }
   }
 
+  const enviarParaOlist = async (pedido) => {
+    if (pedido.olist_numero) {
+      const confirmar = window.confirm(
+        `O pedido nº ${pedido.numero} já está na Olist como pedido nº ${pedido.olist_numero}.\n\n` +
+        'Enviar de novo cria um pedido duplicado lá. Deseja continuar?'
+      )
+      if (!confirmar) return
+    }
+    mostrarToast('info', `Enviando pedido nº ${pedido.numero} para a Olist...`)
+    try {
+      const res = await api.post(`/pedidos/${pedido.id}/enviar-olist`, { reenviar: !!pedido.olist_numero })
+      carregar(filtros)
+      mostrarToast('success', res.data.message)
+    } catch (err) {
+      mostrarToast('error', err.response?.data?.error || 'Erro ao enviar pedido para a Olist', 8000)
+    }
+  }
+
   const baixarPdf = async (pedido) => {
     mostrarToast('info', `Gerando PDF do pedido nº ${pedido.numero}...`)
     try {
@@ -244,6 +262,19 @@ export default function Pedidos() {
                           </button>
                         ) : (
                           <span className="text-onforge-gray text-sm cursor-not-allowed" title="Somente pedidos Concluídos ou já Exportados podem ser exportados">Exportar</span>
+                        )
+                      )}
+                      {isAdmin && (
+                        ['concluido', 'exportado'].includes(p.status) ? (
+                          <button
+                            onClick={() => enviarParaOlist(p)}
+                            className="text-onforge-black hover:opacity-70 text-sm"
+                            title={p.olist_numero ? `Já enviado à Olist como pedido nº ${p.olist_numero}` : 'Criar este pedido direto na Olist, sem planilha'}
+                          >
+                            {p.olist_numero ? `Olist ✓ ${p.olist_numero}` : 'Enviar Olist'}
+                          </button>
+                        ) : (
+                          <span className="text-onforge-gray text-sm cursor-not-allowed" title="Somente pedidos Concluídos ou já Exportados podem ser enviados">Enviar Olist</span>
                         )
                       )}
                     </td>

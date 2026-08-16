@@ -11,6 +11,7 @@ export default function Configuracoes() {
   const [salvando, setSalvando] = useState(false)
   const [mensagem, setMensagem] = useState('')
   const [erro, setErro] = useState('')
+  const [olist, setOlist] = useState(null)
 
   useEffect(() => {
     carregar()
@@ -22,8 +23,23 @@ export default function Configuracoes() {
       setDescontoMaximo(res.data.desconto_maximo_percentual ?? '0')
       setDiaPagamento(res.data.comissao_dia_pagamento ?? '10')
       setDiasUteisCorte(res.data.comissao_dias_uteis_corte ?? '2')
+      const status = await api.get('/integracoes/olist/status')
+      setOlist(status.data)
     } finally {
       setLoading(false)
+    }
+  }
+
+  // A Olist devolve o retorno da autorização direto no backend, então a conexão
+  // acontece em outra aba e o status é relido quando o admin volta para cá.
+  const conectarOlist = async () => {
+    setErro('')
+    try {
+      const res = await api.post('/integracoes/olist/autorizar')
+      window.open(res.data.url, '_blank', 'noopener')
+      setMensagem('Autorize o acesso na aba que abriu e depois recarregue esta página.')
+    } catch (err) {
+      setErro(err.response?.data?.error || 'Erro ao iniciar a conexão com a Olist')
     }
   }
 
@@ -105,6 +121,30 @@ export default function Configuracoes() {
             {salvando ? 'Salvando...' : 'Salvar'}
           </button>
         </form>
+      </div>
+
+      <div className="bg-white rounded-lg shadow p-6 mt-6">
+        <h2 className="text-lg font-bold font-display mb-1">Integração com a Olist</h2>
+        <p className="text-xs text-onforge-black/50 mb-4">
+          Permite enviar pedidos direto para o ERP, sem planilha. A autorização vale por pouco tempo:
+          se ficar dias sem enviar nenhum pedido, é preciso reconectar aqui.
+        </p>
+
+        {olist?.conectado ? (
+          <p className="text-sm text-green-700 mb-3">
+            ✓ Conectada — última renovação em {new Date(olist.atualizado_em).toLocaleString('pt-BR')}
+          </p>
+        ) : (
+          <p className="text-sm text-onforge-black/60 mb-3">Ainda não conectada.</p>
+        )}
+
+        <button
+          type="button"
+          onClick={conectarOlist}
+          className="bg-onforge-black text-white px-4 py-2 rounded-md hover:bg-black/80 text-sm"
+        >
+          {olist?.conectado ? 'Reconectar' : 'Conectar à Olist'}
+        </button>
       </div>
     </div>
   )
