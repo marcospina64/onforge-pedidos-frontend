@@ -128,13 +128,13 @@ export default function ImportarPrecos() {
       <div className="flex gap-2 mb-6">
         <button
           onClick={() => setAba('importar')}
-          className={`px-4 py-2 rounded-t font-medium ${aba === 'importar' ? 'bg-white text-onforge-black shadow' : 'bg-onforge-cream/40 text-onforge-black/60'}`}
+          className={`px-4 py-2 rounded-t font-medium border border-b-0 ${aba === 'importar' ? 'bg-white text-onforge-black shadow border-onforge-gray/30' : 'bg-onforge-peach/30 text-onforge-black/70 border-onforge-peach/40'}`}
         >
           Importar Preços
         </button>
         <button
           onClick={() => setAba('gerar')}
-          className={`px-4 py-2 rounded-t font-medium ${aba === 'gerar' ? 'bg-white text-onforge-black shadow' : 'bg-onforge-cream/40 text-onforge-black/60'}`}
+          className={`px-4 py-2 rounded-t font-medium border border-b-0 ${aba === 'gerar' ? 'bg-white text-onforge-black shadow border-onforge-gray/30' : 'bg-onforge-peach/30 text-onforge-black/70 border-onforge-peach/40'}`}
         >
           Gerar Tabela Preços
         </button>
