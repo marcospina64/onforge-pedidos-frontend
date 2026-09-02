@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react'
 import api from '../services/api'
 import { formatMoney } from '../utils/format'
+import { fotoProdutoUrl } from '../utils/produtoFoto'
 import { calcularItem, calcularTotalPedido } from '../utils/pedidoCalc'
 
 export default function CarrinhoItens({ carrinho, setCarrinho, descontoMaximo, descontoGeral = 0, acoes }) {
@@ -34,7 +35,6 @@ export default function CarrinhoItens({ carrinho, setCarrinho, descontoMaximo, d
           produto_id: produto.id,
           codigo: produto.codigo,
           nome_produto: produto.nome_produto,
-          foto_base64: produto.foto_base64,
           unidade: produto.unidade,
           gtin: produto.gtin,
           preco_tabela: Number(produto.preco_tabela),
@@ -70,8 +70,8 @@ export default function CarrinhoItens({ carrinho, setCarrinho, descontoMaximo, d
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 max-h-72 overflow-y-auto">
             {produtosEncontrados.map((p) => (
               <div key={p.id} className="border border-onforge-gray/30 rounded-md p-2 flex flex-col items-center text-center">
-                {p.foto_base64 ? (
-                  <img src={p.foto_base64} alt={p.nome_produto} className="w-16 h-16 object-contain mb-1" />
+                {p.tem_foto ? (
+                  <img src={fotoProdutoUrl(p.id)} alt={p.nome_produto} loading="lazy" className="w-16 h-16 object-contain mb-1" />
                 ) : (
                   <div className="w-16 h-16 bg-onforge-cream mb-1" />
                 )}

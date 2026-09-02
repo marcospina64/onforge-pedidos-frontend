@@ -2,6 +2,7 @@ import { useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import api from '../services/api'
 import { formatMoney } from '../utils/format'
+import { fotoProdutoUrl } from '../utils/produtoFoto'
 
 export default function ProdutosInativar() {
   const navigate = useNavigate()
@@ -79,8 +80,8 @@ export default function ProdutosInativar() {
 
       {selecionado && (
         <div className="bg-white rounded-lg shadow p-6 flex flex-wrap items-center gap-6">
-          {selecionado.foto_base64 ? (
-            <img src={selecionado.foto_base64} alt={selecionado.nome_produto} className="w-24 h-24 object-contain" />
+          {selecionado.tem_foto ? (
+            <img src={fotoProdutoUrl(selecionado.id)} alt={selecionado.nome_produto} loading="lazy" className="w-24 h-24 object-contain" />
           ) : (
             <div className="w-24 h-24 bg-onforge-cream flex items-center justify-center text-onforge-black/40 text-xs">Sem foto</div>
           )}

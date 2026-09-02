@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import api from '../services/api'
 import { formatMoney } from '../utils/format'
+import { fotoProdutoUrl } from '../utils/produtoFoto'
 import { useAuth } from '../context/AuthContext'
 
 export default function Produtos() {
@@ -67,8 +68,8 @@ export default function Produtos() {
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
           {produtos.map((p) => (
             <div key={p.id} className="bg-white rounded-lg shadow p-3 flex flex-col items-center text-center">
-              {p.foto_base64 ? (
-                <img src={p.foto_base64} alt={p.nome_produto} className="w-20 h-20 object-contain mb-2" />
+              {p.tem_foto ? (
+                <img src={fotoProdutoUrl(p.id)} alt={p.nome_produto} loading="lazy" className="w-20 h-20 object-contain mb-2" />
               ) : (
                 <div className="w-20 h-20 bg-onforge-cream flex items-center justify-center mb-2 text-onforge-black/40 text-xs">Sem foto</div>
               )}
