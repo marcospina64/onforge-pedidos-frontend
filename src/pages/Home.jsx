@@ -21,7 +21,7 @@ export default function Home() {
     navigate('/login')
   }
 
-  const modulesVendedor = [
+  const modulesVendas = [
     { title: 'Novo Pedido', description: 'Registrar um novo pedido de venda', path: '/pedidos/novo', icon: '🛒' },
     { title: 'Meus Pedidos', description: 'Ver e gerenciar seus pedidos', path: '/pedidos', icon: '📋' },
     { title: 'Clientes', description: 'Consultar e cadastrar clientes', path: '/clientes', icon: '🏢' },
@@ -29,20 +29,23 @@ export default function Home() {
     { title: 'Minhas Comissões', description: 'Ver suas vendas e comissões', path: '/comissoes', icon: '💰' },
   ]
 
-  const modulesAdmin = [
-    ...modulesVendedor,
+  const modulesProducao = [
+    { title: 'Catálogo de Kits', description: 'Consultar kits e atualizar sua composição', path: '/kits', icon: '🧰' },
+  ]
+
+  const modulesAdministracao = [
     { title: 'Usuários', description: 'Gerenciar vendedores e administradores', path: '/usuarios', icon: '👤' },
-    { title: 'Importar Preços', description: 'Atualizar tabela de preços via Excel', path: '/produtos/importar', icon: '📥' },
-    { title: 'Importar Clientes', description: 'Importar clientes via Excel', path: '/clientes/importar', icon: '📥' },
+    { title: 'Importar Preços', description: 'Atualizar tabela de preços via Excel', path: '/produtos/importar', icon: '💲' },
+    { title: 'Importar Clientes', description: 'Importar clientes via Excel', path: '/clientes/importar', icon: '📇' },
     { title: 'Configurações', description: 'Definir limite de desconto', path: '/configuracoes', icon: '⚙️' },
     { title: 'Histórico de Login', description: 'Acompanhar acessos dos usuários ao sistema', path: '/historico-login', icon: '🔑' },
   ]
 
-  const modules = isAdmin ? modulesAdmin : isProdutor ? [] : modulesVendedor
-
-  const modulesProducao = [
-    { title: 'Catálogo de Kits', description: 'Consultar kits e atualizar sua composição', path: '/kits', icon: '🧰' },
-  ]
+  const grupos = [
+    { titulo: 'Vendas', mostrar: !isProdutor, itens: modulesVendas },
+    { titulo: 'Produção', mostrar: podeProducao, itens: modulesProducao },
+    { titulo: 'Administração', mostrar: isAdmin, itens: modulesAdministracao },
+  ].filter((g) => g.mostrar && g.itens.length > 0)
 
   const tipoLabel = isAdmin ? 'Administrador' : isProdutor ? 'Produtor' : 'Vendedor'
 
@@ -80,27 +83,11 @@ export default function Home() {
           )}
         </div>
 
-        {modules.length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {modules.map(module => (
-              <div
-                key={module.path}
-                onClick={() => navigate(module.path)}
-                className="bg-white rounded-lg shadow p-6 hover:shadow-lg hover:-translate-y-0.5 cursor-pointer transition"
-              >
-                <div className="text-4xl mb-3">{module.icon}</div>
-                <h3 className="text-lg font-semibold font-display text-onforge-black mb-2">{module.title}</h3>
-                <p className="text-onforge-black/60">{module.description}</p>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {podeProducao && (
-          <section className={modules.length > 0 ? 'mt-10' : ''}>
-            <h3 className="text-xl font-bold font-display text-onforge-black mb-4">Produção</h3>
+        {grupos.map((grupo, i) => (
+          <section key={grupo.titulo} className={i > 0 ? 'mt-10' : ''}>
+            <h3 className="text-xl font-bold font-display text-onforge-black mb-4">{grupo.titulo}</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {modulesProducao.map(module => (
+              {grupo.itens.map((module) => (
                 <div
                   key={module.path}
                   onClick={() => navigate(module.path)}
@@ -113,7 +100,7 @@ export default function Home() {
               ))}
             </div>
           </section>
-        )}
+        ))}
       </main>
     </div>
   )
