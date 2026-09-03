@@ -1,8 +1,10 @@
 import { Navigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 
-export default function ProtectedRoute({ children, adminOnly = false }) {
-  const { user, loading, isAdmin } = useAuth()
+// adminOnly: atalho para allow={['admin']}.
+// allow: lista de tipos de usuário com acesso à rota (ex.: ['admin', 'produtor']).
+export default function ProtectedRoute({ children, adminOnly = false, allow = null }) {
+  const { user, loading } = useAuth()
 
   if (loading) {
     return (
@@ -19,7 +21,8 @@ export default function ProtectedRoute({ children, adminOnly = false }) {
     return <Navigate to="/login" replace />
   }
 
-  if (adminOnly && !isAdmin) {
+  const tiposPermitidos = allow || (adminOnly ? ['admin'] : null)
+  if (tiposPermitidos && !tiposPermitidos.includes(user.tipo)) {
     return <Navigate to="/dashboard" replace />
   }
 

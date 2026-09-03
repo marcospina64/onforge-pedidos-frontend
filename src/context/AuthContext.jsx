@@ -46,10 +46,12 @@ export const AuthProvider = ({ children }) => {
   }
 
   const isAdmin = user?.tipo === 'admin'
+  const isProdutor = user?.tipo === 'produtor'
+  const podeProducao = isAdmin || isProdutor
   const souMaster = !!user?.sou_master
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout, isAdmin, souMaster }}>
+    <AuthContext.Provider value={{ user, loading, login, logout, isAdmin, isProdutor, podeProducao, souMaster }}>
       {children}
     </AuthContext.Provider>
   )

@@ -9,6 +9,8 @@ const VAZIO = {
   celular: '', cidade: '', uf: '', observacoes: '', vendedor_master_id: '',
 }
 
+const TIPO_LABEL = { admin: 'Administrador', vendedor: 'Vendedor', produtor: 'Produtor' }
+
 export default function Usuarios() {
   const navigate = useNavigate()
   const [usuarios, setUsuarios] = useState([])
@@ -81,7 +83,7 @@ export default function Usuarios() {
     { key: 'celular', label: 'Celular' },
     { key: 'cidade', label: 'Cidade' },
     { key: 'uf', label: 'UF' },
-    { key: 'tipo', label: 'Tipo', render: (v) => (v === 'admin' ? 'Administrador' : 'Vendedor') },
+    { key: 'tipo', label: 'Tipo', render: (v) => TIPO_LABEL[v] || v },
     {
       key: 'vendedor_master_id', label: 'Equipe',
       render: (v) => (v ? `Subordinado de ${usuarios.find((u) => u.id === v)?.nome || '?'}` : '-'),
@@ -147,6 +149,7 @@ export default function Usuarios() {
             >
               <option value="vendedor">Vendedor</option>
               <option value="admin">Administrador</option>
+              <option value="produtor">Produtor</option>
             </select>
           </div>
 

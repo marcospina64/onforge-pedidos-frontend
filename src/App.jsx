@@ -20,6 +20,15 @@ import ComissoesPercentuais from './pages/ComissoesPercentuais'
 import ComissoesPercentuaisMaster from './pages/ComissoesPercentuaisMaster'
 import HistoricoLogin from './pages/HistoricoLogin'
 import ProdutosInativar from './pages/ProdutosInativar'
+import Kits from './pages/Kits'
+import KitDetalhe from './pages/KitDetalhe'
+import KitsImportar from './pages/KitsImportar'
+import KitsInativar from './pages/KitsInativar'
+
+// Vendas: Administrador + Vendedor (o Produtor só acessa o grupo Produção).
+const VENDAS = ['admin', 'vendedor']
+// Produção: Administrador + Produtor.
+const PRODUCAO = ['admin', 'produtor']
 
 function App() {
   return (
@@ -54,7 +63,7 @@ function App() {
           <Route
             path="/clientes"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allow={VENDAS}>
                 <Clientes />
               </ProtectedRoute>
             }
@@ -70,7 +79,7 @@ function App() {
           <Route
             path="/produtos"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allow={VENDAS}>
                 <Produtos />
               </ProtectedRoute>
             }
@@ -86,7 +95,7 @@ function App() {
           <Route
             path="/pedidos/novo"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allow={VENDAS}>
                 <NovoPedido />
               </ProtectedRoute>
             }
@@ -94,7 +103,7 @@ function App() {
           <Route
             path="/pedidos"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allow={VENDAS}>
                 <Pedidos />
               </ProtectedRoute>
             }
@@ -102,7 +111,7 @@ function App() {
           <Route
             path="/pedidos/:id/editar"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allow={VENDAS}>
                 <EditarPedido />
               </ProtectedRoute>
             }
@@ -110,7 +119,7 @@ function App() {
           <Route
             path="/comissoes"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allow={VENDAS}>
                 <Comissoes />
               </ProtectedRoute>
             }
@@ -168,6 +177,38 @@ function App() {
             element={
               <ProtectedRoute adminOnly>
                 <HistoricoLogin />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/kits"
+            element={
+              <ProtectedRoute allow={PRODUCAO}>
+                <Kits />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/kits/importar"
+            element={
+              <ProtectedRoute allow={PRODUCAO}>
+                <KitsImportar />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/kits/inativar"
+            element={
+              <ProtectedRoute allow={PRODUCAO}>
+                <KitsInativar />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/kits/:id"
+            element={
+              <ProtectedRoute allow={PRODUCAO}>
+                <KitDetalhe />
               </ProtectedRoute>
             }
           />
