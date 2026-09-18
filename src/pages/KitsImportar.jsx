@@ -42,10 +42,11 @@ export default function KitsImportar() {
 
       <div className="bg-white rounded-lg shadow p-6">
         <p className="text-sm text-onforge-black/60 mb-4">
-          Envie a planilha <strong>Guia de Montagem de Kits</strong> (.xlsx ou .xls). O sistema lê os blocos
-          <strong> KIT | código | nome | Cor</strong> e, abaixo de cada um, os produtos que compõem o kit
-          (<strong>SKU</strong>, <strong>Produto</strong> e <strong>Qtde</strong>). Kits existentes são
-          atualizados pelo código; os componentes de cada kit são substituídos pelos da planilha.
+          Envie a planilha <strong>Exportação Kits</strong> (.xlsx ou .xls), com uma linha por kit
+          (<strong>Referência Kit</strong>, <strong>Nome do Kit</strong>, <strong>Cor Kit</strong>) e colunas
+          repetidas por item (<strong>ItN</strong>, <strong>ProdutoN</strong>, <strong>Ref ProdN</strong>,{' '}
+          <strong>QtdProN</strong>). Kits existentes são atualizados pelo código; os componentes de cada kit
+          são substituídos pelos da planilha.
         </p>
 
         <div className="border-2 border-dashed border-onforge-gray/50 rounded-lg p-8 text-center">
