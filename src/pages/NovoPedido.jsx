@@ -5,6 +5,7 @@ import { formatMoney } from '../utils/format'
 import { encontrarItemForaDoLimite, calcularDescontoMedio } from '../utils/pedidoCalc'
 import Modal from '../components/Modal'
 import CarrinhoItens from '../components/CarrinhoItens'
+import { indexarPromocoes } from '../utils/promocao'
 
 const CLIENTE_VAZIO = { razao_social: '', cnpj: '', cidade: '', estado: '', telefone: '' }
 
@@ -13,6 +14,7 @@ const STATUS_LABEL = { pendente: 'Pendente', concluido: 'Concluído' }
 export default function NovoPedido() {
   const navigate = useNavigate()
   const [descontoMaximo, setDescontoMaximo] = useState(0)
+  const [promocoes, setPromocoes] = useState({})
 
   const [buscaCliente, setBuscaCliente] = useState('')
   const [clientesEncontrados, setClientesEncontrados] = useState([])
@@ -33,6 +35,8 @@ export default function NovoPedido() {
     api.get('/configuracoes').then((res) => {
       setDescontoMaximo(Number(res.data.desconto_maximo_percentual) || 0)
     })
+    // Campanhas vigentes hoje — o backend recalcula ao salvar, isto é só para a tela.
+    api.get('/campanhas/vigentes').then((res) => setPromocoes(indexarPromocoes(res.data))).catch(() => setPromocoes({}))
   }, [])
 
   const buscarClientes = async (termo) => {
@@ -198,6 +202,7 @@ export default function NovoPedido() {
                 className={`w-full px-3 py-2 border rounded-md ${descontoGeral > descontoMaximo ? 'border-red-500 bg-red-50' : 'border-onforge-gray/50'}`}
               />
               {descontoGeral > descontoMaximo && <p className="text-xs text-red-600 mt-1">Máx: {descontoMaximo}%</p>}
+              <p className="text-[11px] text-onforge-black/50 mt-1">Não se aplica a itens em promoção (desconto da campanha não acumula).</p>
             </div>
             <div>
               <label className="block text-xs font-medium text-onforge-black/80 mb-2">Condição de Pagamento</label>
@@ -241,6 +246,7 @@ export default function NovoPedido() {
         setCarrinho={setCarrinho}
         descontoMaximo={descontoMaximo}
         descontoGeral={descontoGeral}
+        promocoes={promocoes}
         acoes={
           <>
             <button

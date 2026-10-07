@@ -4,6 +4,7 @@ import api from '../services/api'
 import { formatMoney } from '../utils/format'
 import { encontrarItemForaDoLimite, calcularDescontoMedio } from '../utils/pedidoCalc'
 import CarrinhoItens from '../components/CarrinhoItens'
+import { indexarPromocoes, aplicarRegraPromocional } from '../utils/promocao'
 
 const STATUS_BLOQUEADOS = ['exportado', 'cancelado']
 const STATUS_LABEL = { pendente: 'Pendente', concluido: 'Concluído', exportado: 'Exportado', cancelado: 'Cancelado' }
@@ -12,6 +13,7 @@ export default function EditarPedido() {
   const { id } = useParams()
   const navigate = useNavigate()
   const [descontoMaximo, setDescontoMaximo] = useState(0)
+  const [promocoes, setPromocoes] = useState({})
   const [carregando, setCarregando] = useState(true)
   const [pedido, setPedido] = useState(null)
   const [bloqueado, setBloqueado] = useState(false)
@@ -27,17 +29,20 @@ export default function EditarPedido() {
   const [clientesEncontrados, setClientesEncontrados] = useState([])
 
   useEffect(() => {
-    api.get('/configuracoes').then((res) => {
-      setDescontoMaximo(Number(res.data.desconto_maximo_percentual) || 0)
-    })
     carregarPedido()
   }, [id])
 
   const carregarPedido = async () => {
     try {
       setCarregando(true)
-      const res = await api.get(`/pedidos/${id}`)
+      const [res, configRes] = await Promise.all([api.get(`/pedidos/${id}`), api.get('/configuracoes')])
       const dados = res.data
+      const maximo = Number(configRes.data.desconto_maximo_percentual) || 0
+      setDescontoMaximo(maximo)
+      // Campanhas vigentes NA DATA DO PEDIDO (desconto congelado na criação).
+      const promoRes = await api.get('/campanhas/vigentes', { params: { data: dados.data_pedido_iso } }).catch(() => ({ data: [] }))
+      const mapaPromocoes = indexarPromocoes(promoRes.data)
+      setPromocoes(mapaPromocoes)
       setPedido(dados)
       setClienteSelecionado({
         id: dados.cliente_id,
@@ -53,16 +58,28 @@ export default function EditarPedido() {
         setBloqueado(true)
         return
       }
-      setCarrinho(dados.itens.map((item) => ({
-        produto_id: item.produto_id,
-        codigo: item.codigo_produto,
-        nome_produto: item.nome_produto,
-        unidade: item.unidade,
-        gtin: item.gtin,
-        preco_tabela: Number(item.vr_unitario),
-        qtd: Number(item.qtd),
-        perc_desconto: Number(item.perc_desconto),
-      })))
+      const descontoPadrao = Math.min(Number(dados.desconto_geral) || 0, maximo)
+      setCarrinho(dados.itens.map((item) => {
+        const base = {
+          produto_id: item.produto_id,
+          codigo: item.codigo_produto,
+          nome_produto: item.nome_produto,
+          unidade: item.unidade,
+          gtin: item.gtin,
+          preco_tabela: Number(item.vr_unitario),
+          qtd: Number(item.qtd),
+          perc_desconto: Number(item.perc_desconto),
+          origem_desconto: item.origem_desconto || 'vendedor',
+          campanha_id: item.campanha_id,
+          campanha_nome: item.campanha_nome,
+        }
+        const recalculado = aplicarRegraPromocional(base, mapaPromocoes[item.produto_id], descontoPadrao)
+        // Campanha cancelada depois do pedido: o item volta para a regra geral e o vendedor é avisado.
+        if (base.origem_desconto === 'promocional' && recalculado.origem_desconto !== 'promocional') {
+          recalculado.aviso = `A campanha "${base.campanha_nome}" não vale mais para este pedido. Desconto ajustado para a regra geral.`
+        }
+        return recalculado
+      }))
     } catch (err) {
       setErro(err.response?.data?.error || 'Erro ao carregar pedido')
     } finally {
@@ -223,6 +240,7 @@ export default function EditarPedido() {
               className={`w-full px-3 py-2 border rounded-md ${descontoGeral > descontoMaximo ? 'border-red-500 bg-red-50' : 'border-onforge-gray/50'}`}
             />
             {descontoGeral > descontoMaximo && <p className="text-xs text-red-600 mt-1">Máx: {descontoMaximo}%</p>}
+            <p className="text-[11px] text-onforge-black/50 mt-1">Não se aplica a itens em promoção (desconto da campanha não acumula).</p>
           </div>
           <div>
             <label className="block text-xs font-medium text-onforge-black/80 mb-2">Condição de Pagamento</label>
@@ -265,6 +283,7 @@ export default function EditarPedido() {
         setCarrinho={setCarrinho}
         descontoMaximo={descontoMaximo}
         descontoGeral={descontoGeral}
+        promocoes={promocoes}
         acoes={
           <>
             <button

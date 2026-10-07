@@ -5,6 +5,7 @@ import LoginPage from './pages/LoginPage'
 import Home from './pages/Home'
 import Usuarios from './pages/Usuarios'
 import Configuracoes from './pages/Configuracoes'
+import DescontosPromocoes from './pages/DescontosPromocoes'
 import Clientes from './pages/Clientes'
 import ImportarClientes from './pages/ImportarClientes'
 import Produtos from './pages/Produtos'
@@ -57,6 +58,14 @@ function App() {
             element={
               <ProtectedRoute adminOnly>
                 <Configuracoes />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/configuracoes/descontos-promocoes"
+            element={
+              <ProtectedRoute adminOnly>
+                <DescontosPromocoes />
               </ProtectedRoute>
             }
           />

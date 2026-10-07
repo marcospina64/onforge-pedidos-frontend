@@ -37,7 +37,7 @@ export default function Home() {
     { title: 'Usuários', description: 'Gerenciar vendedores e administradores', path: '/usuarios', icon: '👤' },
     { title: 'Importar Preços', description: 'Atualizar tabela de preços via Excel', path: '/produtos/importar', icon: '💲' },
     { title: 'Importar Clientes', description: 'Importar clientes via Excel', path: '/clientes/importar', icon: '📇' },
-    { title: 'Configurações', description: 'Definir limite de desconto', path: '/configuracoes', icon: '⚙️' },
+    { title: 'Configurações', description: 'Descontos, campanhas promocionais e comissões', path: '/configuracoes', icon: '⚙️' },
     { title: 'Histórico de Login', description: 'Acompanhar acessos dos usuários ao sistema', path: '/historico-login', icon: '🔑' },
   ]
 

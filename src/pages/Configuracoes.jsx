@@ -4,7 +4,6 @@ import api from '../services/api'
 
 export default function Configuracoes() {
   const navigate = useNavigate()
-  const [descontoMaximo, setDescontoMaximo] = useState('')
   const [diaPagamento, setDiaPagamento] = useState('')
   const [diasUteisCorte, setDiasUteisCorte] = useState('')
   const [loading, setLoading] = useState(true)
@@ -20,7 +19,6 @@ export default function Configuracoes() {
   const carregar = async () => {
     try {
       const res = await api.get('/configuracoes')
-      setDescontoMaximo(res.data.desconto_maximo_percentual ?? '0')
       setDiaPagamento(res.data.comissao_dia_pagamento ?? '10')
       setDiasUteisCorte(res.data.comissao_dias_uteis_corte ?? '2')
       const status = await api.get('/integracoes/olist/status')
@@ -50,7 +48,6 @@ export default function Configuracoes() {
     setSalvando(true)
     try {
       await api.patch('/configuracoes', {
-        desconto_maximo_percentual: descontoMaximo,
         comissao_dia_pagamento: diaPagamento,
         comissao_dias_uteis_corte: diasUteisCorte,
       })
@@ -71,24 +68,24 @@ export default function Configuracoes() {
       </button>
       <h1 className="text-3xl font-bold mb-6 font-display">Configurações</h1>
 
+      <button
+        type="button"
+        onClick={() => navigate('/configuracoes/descontos-promocoes')}
+        className="w-full bg-white rounded-lg shadow p-6 mb-6 text-left hover:bg-onforge-cream/40 flex justify-between items-center"
+      >
+        <span>
+          <span className="block text-lg font-bold font-display">Desconto e Promoções</span>
+          <span className="block text-xs text-onforge-black/50">Desconto máximo do vendedor e Campanhas Promocionais</span>
+        </span>
+        <span className="text-xl">→</span>
+      </button>
+
       <div className="bg-white rounded-lg shadow p-6">
         <form onSubmit={salvar} className="space-y-4">
           {erro && <div className="p-3 bg-red-50 border border-red-200 text-red-700 rounded text-sm">{erro}</div>}
           {mensagem && <div className="p-3 bg-green-50 border border-green-200 text-green-700 rounded text-sm">{mensagem}</div>}
 
-          <div>
-            <label className="block text-sm font-medium text-onforge-black/80 mb-1">
-              Desconto máximo que o vendedor pode aplicar por item (%)
-            </label>
-            <input
-              type="number" step="0.01" min="0" max="100" required
-              value={descontoMaximo}
-              onChange={(e) => setDescontoMaximo(e.target.value)}
-              className="w-full px-3 py-2 border border-onforge-gray/50 rounded-md"
-            />
-          </div>
-
-          <hr className="border-onforge-gray/20" />
+          <h2 className="text-lg font-bold font-display">Comissões</h2>
 
           <div>
             <label className="block text-sm font-medium text-onforge-black/80 mb-1">
