@@ -2,7 +2,7 @@ import { useState, useRef } from 'react'
 import api from '../services/api'
 import { formatMoney } from '../utils/format'
 import { fotoProdutoUrl } from '../utils/produtoFoto'
-import { calcularItem, calcularTotalPedido } from '../utils/pedidoCalc'
+import { calcularItem, calcularTotalPedido, limiteDescontoItem } from '../utils/pedidoCalc'
 import { aplicarRegraPromocional, promocaoAtingida, textoPromocao } from '../utils/promocao'
 
 // promocoes: mapa produto_id -> promoção vigente (ver utils/promocao.js)
@@ -95,9 +95,19 @@ export default function CarrinhoItens({ carrinho, setCarrinho, descontoMaximo, d
     )
   }
 
+  // Item promocional: o usuário só pode reduzir o % (de 0 até o % da promoção).
+  const limitarDescontoPromocional = (item, valor) => {
+    if (item.origem_desconto !== 'promocional' || item.perc_promocao == null || valor === '') return valor
+    const n = Number(valor)
+    if (!Number.isFinite(n)) return valor
+    if (n > Number(item.perc_promocao)) return String(item.perc_promocao)
+    if (n < 0) return '0'
+    return valor
+  }
+
   const atualizarDesconto = (produtoId, valor) => {
     setCarrinho((atual) =>
-      atual.map((i) => (i.produto_id === produtoId && i.origem_desconto !== 'promocional' ? { ...i, perc_desconto: valor } : i))
+      atual.map((i) => (i.produto_id === produtoId ? { ...i, perc_desconto: limitarDescontoPromocional(i, valor) } : i))
     )
   }
 
@@ -198,7 +208,9 @@ export default function CarrinhoItens({ carrinho, setCarrinho, descontoMaximo, d
                   const promocional = item.origem_desconto === 'promocional'
                   const promocao = promocoes[item.produto_id]
                   const faltaParaPromo = promocao && !promocional
-                  const acimaDoLimite = !promocional && Number(item.perc_desconto) > descontoMaximo
+                  const limiteItem = limiteDescontoItem(item, descontoMaximo)
+                  const acimaDoLimite = Number(item.perc_desconto) > limiteItem
+                  const promocionalReduzido = promocional && Number(item.perc_desconto) < limiteItem
                   return (
                     <tr key={item.produto_id} className="border-b align-top">
                       <td className="px-2 py-2">
@@ -226,13 +238,13 @@ export default function CarrinhoItens({ carrinho, setCarrinho, descontoMaximo, d
                       <td className="px-2 py-2">{formatMoney(item.preco_tabela)}</td>
                       <td className="px-2 py-2">
                         <input
-                          type="number" min="0" max="100" step="0.01" value={item.perc_desconto}
-                          disabled={promocional}
-                          title={promocional ? 'Desconto promocional fixo da campanha' : undefined}
+                          type="number" min="0" max={limiteItem} step="0.01" value={item.perc_desconto}
+                          title={promocional ? `Desconto promocional de ${limiteItem}%. Você pode reduzir, não aumentar.` : undefined}
                           onChange={(e) => atualizarDesconto(item.produto_id, e.target.value)}
-                          className={`w-20 px-2 py-1 border rounded ${promocional ? 'bg-onforge-cream border-onforge-peach font-semibold' : acimaDoLimite ? 'border-red-500 bg-red-50' : 'border-onforge-gray/50'}`}
+                          className={`w-20 px-2 py-1 border rounded ${acimaDoLimite ? 'border-red-500 bg-red-50' : promocional ? 'bg-onforge-cream border-onforge-peach font-semibold' : 'border-onforge-gray/50'}`}
                         />
-                        {acimaDoLimite && <p className="text-xs text-red-600">Máx: {descontoMaximo}%</p>}
+                        {acimaDoLimite && <p className="text-xs text-red-600">Máx: {limiteItem}%{promocional ? ' (promoção)' : ''}</p>}
+                        {promocionalReduzido && <p className="text-xs text-amber-700">Promoção: {limiteItem}%</p>}
                       </td>
                       <td className="px-2 py-2 font-medium">{formatMoney(total)}</td>
                       <td className="px-2 py-2">

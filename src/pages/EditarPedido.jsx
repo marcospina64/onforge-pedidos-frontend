@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import api from '../services/api'
 import { formatMoney } from '../utils/format'
-import { encontrarItemForaDoLimite, calcularDescontoMedio } from '../utils/pedidoCalc'
+import { encontrarItemForaDoLimite, limiteDescontoItem, calcularDescontoMedio } from '../utils/pedidoCalc'
 import CarrinhoItens from '../components/CarrinhoItens'
 import { indexarPromocoes, aplicarRegraPromocional } from '../utils/promocao'
 
@@ -111,7 +111,7 @@ export default function EditarPedido() {
     }
     const itemForaLimite = encontrarItemForaDoLimite(carrinho, descontoMaximo)
     if (itemForaLimite) {
-      setErro(`O desconto de ${itemForaLimite.perc_desconto}% em "${itemForaLimite.nome_produto}" excede o limite de ${descontoMaximo}%`)
+      setErro(`O desconto de ${itemForaLimite.perc_desconto}% em "${itemForaLimite.nome_produto}" excede o limite de ${limiteDescontoItem(itemForaLimite, descontoMaximo)}%`)
       return
     }
     if (descontoGeral < 0 || descontoGeral > descontoMaximo) {

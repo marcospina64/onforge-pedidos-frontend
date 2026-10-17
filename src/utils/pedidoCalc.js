@@ -10,9 +10,15 @@ export function calcularTotalPedido(carrinho) {
   return carrinho.reduce((soma, item) => soma + calcularItem(item).total, 0)
 }
 
-// Itens com desconto promocional não entram no limite do vendedor.
+// Limite de desconto do item: itens promocionais podem ir de 0 até o % da promoção
+// (não entram no limite do vendedor); os demais seguem o desconto máximo geral.
+export function limiteDescontoItem(item, descontoMaximo) {
+  if (item.origem_desconto === 'promocional' && item.perc_promocao != null) return Number(item.perc_promocao)
+  return descontoMaximo
+}
+
 export function encontrarItemForaDoLimite(carrinho, descontoMaximo) {
-  return carrinho.find((i) => i.origem_desconto !== 'promocional' && Number(i.perc_desconto) > descontoMaximo)
+  return carrinho.find((i) => Number(i.perc_desconto) > limiteDescontoItem(i, descontoMaximo))
 }
 
 export function calcularDescontoMedio(carrinho) {
