@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import api from '../services/api'
 import { formatMoney } from '../utils/format'
 import { encontrarItemForaDoLimite, limiteDescontoItem, calcularDescontoMedio } from '../utils/pedidoCalc'
@@ -12,6 +12,7 @@ const STATUS_LABEL = { pendente: 'Pendente', concluido: 'Concluído', exportado:
 export default function EditarPedido() {
   const { id } = useParams()
   const navigate = useNavigate()
+  const location = useLocation()
   const [descontoMaximo, setDescontoMaximo] = useState(0)
   const [promocoes, setPromocoes] = useState({})
   const [carregando, setCarregando] = useState(true)
@@ -22,6 +23,7 @@ export default function EditarPedido() {
   const [condicaoPagamento, setCondicaoPagamento] = useState('')
   const [observacao, setObservacao] = useState('')
   const [enviando, setEnviando] = useState(false)
+  const [duplicando, setDuplicando] = useState(false)
   const [erro, setErro] = useState('')
   const [sucesso, setSucesso] = useState(null)
   const [clienteSelecionado, setClienteSelecionado] = useState(null)
@@ -136,8 +138,27 @@ export default function EditarPedido() {
       setSucesso({ ...res.data, desconto_medio: calcularDescontoMedio(res.data.itens || []) })
     } catch (err) {
       setErro(err.response?.data?.error || 'Erro ao salvar alterações')
+      window.scrollTo({ top: 0, behavior: 'smooth' })
     } finally {
       setEnviando(false)
+    }
+  }
+
+  // Cria um novo pedido (novo número, Pendente) a partir dos dados SALVOS deste pedido
+  // e abre o novo pedido para edição.
+  const duplicarPedido = async () => {
+    if (!window.confirm(`Duplicar o pedido nº ${pedido?.numero}? Será criado um novo pedido Pendente com os dados salvos (alterações não salvas nesta tela não são copiadas).`)) return
+    setErro('')
+    try {
+      setDuplicando(true)
+      const res = await api.post(`/pedidos/${id}/duplicar`)
+      navigate(`/pedidos/${res.data.id}/editar`, { state: { duplicadoDe: res.data.duplicado_de_numero, avisos: res.data.avisos || [] } })
+      window.scrollTo({ top: 0 })
+    } catch (err) {
+      setErro(err.response?.data?.error || 'Erro ao duplicar pedido')
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    } finally {
+      setDuplicando(false)
     }
   }
 
@@ -188,6 +209,14 @@ export default function EditarPedido() {
       </button>
       <h1 className="text-3xl font-bold mb-6 font-display">Editar Pedido nº {pedido?.numero}</h1>
 
+      {location.state?.duplicadoDe && (
+        <div className="mb-4 p-4 bg-green-50 border border-green-200 text-green-800 rounded">
+          Pedido duplicado a partir do nº {location.state.duplicadoDe}. Este é o novo pedido nº {pedido?.numero} (Pendente).
+          {(location.state.avisos || []).map((a, idx) => (
+            <p key={idx} className="mt-1 text-amber-800">⚠ {a}</p>
+          ))}
+        </div>
+      )}
       {erro && <div className="mb-4 p-4 bg-red-50 border border-red-200 text-red-700 rounded">{erro}</div>}
 
       <div className="bg-white rounded-lg shadow p-6 mb-6">
@@ -286,6 +315,12 @@ export default function EditarPedido() {
         promocoes={promocoes}
         acoes={
           <>
+            <button
+              type="button" onClick={duplicarPedido} disabled={enviando || duplicando}
+              className="border border-onforge-black text-onforge-black px-5 py-3 rounded hover:bg-onforge-cream disabled:opacity-50"
+            >
+              {duplicando ? 'Duplicando...' : 'Duplicar Pedido'}
+            </button>
             <button
               onClick={() => salvarEdicao('pendente')} disabled={enviando}
               className="bg-onforge-gray text-white px-5 py-3 rounded hover:bg-black/70 disabled:bg-onforge-gray"

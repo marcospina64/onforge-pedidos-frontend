@@ -107,6 +107,7 @@ export default function NovoPedido() {
       setObservacao('')
     } catch (err) {
       setErro(err.response?.data?.error || 'Erro ao criar pedido')
+      window.scrollTo({ top: 0, behavior: 'smooth' })
     } finally {
       setEnviando(false)
     }
