@@ -6,6 +6,7 @@ export default function Configuracoes() {
   const navigate = useNavigate()
   const [diaPagamento, setDiaPagamento] = useState('')
   const [diasUteisCorte, setDiasUteisCorte] = useState('')
+  const [prazoEntrega, setPrazoEntrega] = useState('')
   const [loading, setLoading] = useState(true)
   const [salvando, setSalvando] = useState(false)
   const [mensagem, setMensagem] = useState('')
@@ -21,6 +22,7 @@ export default function Configuracoes() {
       const res = await api.get('/configuracoes')
       setDiaPagamento(res.data.comissao_dia_pagamento ?? '10')
       setDiasUteisCorte(res.data.comissao_dias_uteis_corte ?? '2')
+      setPrazoEntrega(res.data.prazo_entrega_dias_uteis ?? '20')
       const status = await api.get('/integracoes/olist/status')
       setOlist(status.data)
     } finally {
@@ -50,6 +52,7 @@ export default function Configuracoes() {
       await api.patch('/configuracoes', {
         comissao_dia_pagamento: diaPagamento,
         comissao_dias_uteis_corte: diasUteisCorte,
+        prazo_entrega_dias_uteis: prazoEntrega,
       })
       setMensagem('Configuração salva com sucesso!')
     } catch (err) {
@@ -111,6 +114,23 @@ export default function Configuracoes() {
             />
             <p className="text-xs text-onforge-black/50 mt-1">
               Parcela confirmada até esse número de dias úteis antes do pagamento (contando feriados nacionais) entra no ciclo do mês corrente; depois disso, cai para o mês seguinte.
+            </p>
+          </div>
+
+          <h2 className="text-lg font-bold font-display pt-2">Pedidos</h2>
+
+          <div>
+            <label className="block text-sm font-medium text-onforge-black/80 mb-1">
+              Prazo de Entrega Dias Úteis
+            </label>
+            <input
+              type="number" step="1" min="1" max="90" required
+              value={prazoEntrega}
+              onChange={(e) => setPrazoEntrega(e.target.value)}
+              className="w-full px-3 py-2 border border-onforge-gray/50 rounded-md"
+            />
+            <p className="text-xs text-onforge-black/50 mt-1">
+              Data prevista de entrega = data do pedido + este número de dias úteis (sem sábados, domingos e feriados nacionais). Usado no envio para a Olist e na planilha de exportação.
             </p>
           </div>
 
