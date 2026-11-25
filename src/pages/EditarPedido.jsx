@@ -4,6 +4,7 @@ import api from '../services/api'
 import { formatMoney } from '../utils/format'
 import { encontrarItemForaDoLimite, limiteDescontoItem, calcularDescontoMedio } from '../utils/pedidoCalc'
 import CarrinhoItens from '../components/CarrinhoItens'
+import FaixaPrazoEntrega from '../components/FaixaPrazoEntrega'
 import { indexarPromocoes, aplicarRegraPromocional } from '../utils/promocao'
 
 const STATUS_BLOQUEADOS = ['exportado', 'cancelado']
@@ -208,6 +209,8 @@ export default function EditarPedido() {
         ← Voltar para Pedidos
       </button>
       <h1 className="text-3xl font-bold mb-6 font-display">Editar Pedido nº {pedido?.numero}</h1>
+
+      <FaixaPrazoEntrega prazo={pedido?.prazo_entrega_dias_uteis} dataPrevista={pedido?.data_entrega_prevista} />
 
       {location.state?.duplicadoDe && (
         <div className="mb-4 p-4 bg-green-50 border border-green-200 text-green-800 rounded">

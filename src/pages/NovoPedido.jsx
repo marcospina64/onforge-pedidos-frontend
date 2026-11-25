@@ -5,6 +5,7 @@ import { formatMoney } from '../utils/format'
 import { encontrarItemForaDoLimite, limiteDescontoItem, calcularDescontoMedio } from '../utils/pedidoCalc'
 import Modal from '../components/Modal'
 import CarrinhoItens from '../components/CarrinhoItens'
+import FaixaPrazoEntrega from '../components/FaixaPrazoEntrega'
 import { indexarPromocoes } from '../utils/promocao'
 
 const CLIENTE_VAZIO = { razao_social: '', cnpj: '', cidade: '', estado: '', telefone: '' }
@@ -14,6 +15,8 @@ const STATUS_LABEL = { pendente: 'Pendente', concluido: 'Concluído' }
 export default function NovoPedido() {
   const navigate = useNavigate()
   const [descontoMaximo, setDescontoMaximo] = useState(0)
+  const [prazoEntrega, setPrazoEntrega] = useState(null)
+  const [entregaPrevista, setEntregaPrevista] = useState(null)
   const [promocoes, setPromocoes] = useState({})
 
   const [buscaCliente, setBuscaCliente] = useState('')
@@ -34,6 +37,8 @@ export default function NovoPedido() {
   useEffect(() => {
     api.get('/configuracoes').then((res) => {
       setDescontoMaximo(Number(res.data.desconto_maximo_percentual) || 0)
+      setPrazoEntrega(Number(res.data.prazo_entrega_dias_uteis) || null)
+      setEntregaPrevista(res.data.entrega_prevista_hoje || null)
     })
     // Campanhas vigentes hoje — o backend recalcula ao salvar, isto é só para a tela.
     api.get('/campanhas/vigentes').then((res) => setPromocoes(indexarPromocoes(res.data))).catch(() => setPromocoes({}))
@@ -142,6 +147,8 @@ export default function NovoPedido() {
         ← Voltar ao Menu
       </button>
       <h1 className="text-3xl font-bold mb-6 font-display">Novo Pedido de Venda</h1>
+
+      <FaixaPrazoEntrega prazo={prazoEntrega} dataPrevista={entregaPrevista} />
 
       {erro && <div className="mb-4 p-4 bg-red-50 border border-red-200 text-red-700 rounded">{erro}</div>}
 

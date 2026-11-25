@@ -226,6 +226,7 @@ export default function Pedidos() {
                 <th className="px-4 py-2 text-left">Status</th>
                 <th className="px-4 py-2 text-left">Valor Total</th>
                 <th className="px-4 py-2 text-left">Condição Pagamento</th>
+                <th className="px-4 py-2 text-left">Entrega Prevista</th>
                 <th className="px-4 py-2"></th>
               </tr>
             </thead>
@@ -245,6 +246,9 @@ export default function Pedidos() {
                     </td>
                     <td className="px-4 py-3 font-medium">{formatMoney(p.valor_total)}</td>
                     <td className="px-4 py-3 text-sm">{p.condicao_pagamento || '-'}</td>
+                    <td className="px-4 py-3 text-sm" title={p.prazo_entrega_dias_uteis ? `${p.prazo_entrega_dias_uteis} dias úteis` : undefined}>
+                      {formatDate(p.data_entrega_prevista)}
+                    </td>
                     <td className="px-4 py-3 space-x-3 whitespace-nowrap">
                       <button onClick={() => abrirDetalhe(p)} className="text-onforge-black hover:opacity-70 text-sm">Ver</button>
                       {edicaoBloqueada ? (
@@ -302,6 +306,11 @@ export default function Pedidos() {
             )}
             {detalhe.condicao_pagamento && (
               <p className="text-sm text-onforge-black/60 mb-1">Condição Pagamento: <strong>{detalhe.condicao_pagamento}</strong></p>
+            )}
+            {detalhe.data_entrega_prevista && (
+              <p className="text-sm text-onforge-black/60 mb-1">
+                Prazo de Entrega: <strong>{detalhe.prazo_entrega_dias_uteis} dias úteis</strong> (previsão: <strong>{formatDate(detalhe.data_entrega_prevista)}</strong>)
+              </p>
             )}
             {detalhe.observacao_pagamento && (
               <p className="text-sm text-onforge-black/60 mb-3">Observação: <strong>{detalhe.observacao_pagamento}</strong></p>
